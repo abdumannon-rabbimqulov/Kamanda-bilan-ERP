@@ -1,98 +1,69 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import FileExtensionValidator
-from datetime import timedelta
 from django.utils import timezone
 
-ADMIN, TEACHER, STUDENT, WAIT = ('Admin', 'Teacher', 'Student', 'wait')
-NEW, CODE_VERIFY, DONE = ('new', 'code_verify', 'done')
-
-
 class CustomUser(AbstractUser):
-    USER_ROLE = ((ADMIN, ADMIN), (TEACHER, TEACHER), (STUDENT, STUDENT), (WAIT, WAIT))
-    USER_STATUS = ((NEW, NEW), (CODE_VERIFY, CODE_VERIFY), (DONE, DONE))
-
-    auth_role = models.CharField(choices=USER_ROLE, default=WAIT, max_length=20)
-    auth_status = models.CharField(choices=USER_STATUS, default=NEW, max_length=20)
-    email = models.EmailField(unique=True)
-    phone = models.CharField(unique=True, max_length=13, blank=True, null=True)
-    photo = models.ImageField(upload_to='user_photo/', blank=True, null=True,
-                              validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg', 'heic'])])
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.username} ({self.auth_role})"
-
-
-class TeacherProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='teacher_profile')
-    specialization = models.CharField(max_length=200, blank=True)
-    experience_years = models.PositiveIntegerField(default=0)
-    salary = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    bio = models.TextField(blank=True)
-
-
-class StudentProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='student_profile')
-    student_id = models.CharField(max_length=20, unique=True)
-    parent_phone = models.CharField(max_length=20, blank=True)
-
+    ROLE_CHOICES = (
+        ('student', 'Student'),
+        ('teacher', 'Teacher'),
+        ('assistant', 'Assistant'),
+        ('admin', 'Admin'),
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
+    is_verified = models.BooleanField(default=False)
+    otp_code = models.CharField(max_length=6, blank=True, null=True)
 
 class Course(models.Model):
-    name = models.CharField(max_length=200)
-    teacher = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='courses')
-    price = models.DecimalField(max_digits=12, decimal_places=2)
-    duration_months = models.PositiveIntegerField(default=1)
-    status = models.CharField(max_length=20, default='active')
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
-
-class Enrollment(models.Model):
-    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='enrollments')
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments')
-    enrolled_date = models.DateField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)
-
-
-# MANA SHU MODEL SIZDA YETISHMAYOTGAN EDI:
-class Lesson(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons')
-    title = models.CharField(max_length=200)
-    date = models.DateField()
-    description = models.TextField(blank=True)
+class Group(models.Model):
+    name = models.CharField(max_length=255)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='teaching_groups')
+    assistant = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='assisting_groups')
+    students = models.ManyToManyField(CustomUser, related_name='enrolled_groups', blank=True)
 
     def __str__(self):
-        return f"{self.course.name} - {self.title}"
+        return f"{self.name} - {self.course.name}"
 
+class Lesson(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.title
+
+class Homework(models.Model):
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    file_or_text = models.TextField()
+    grade = models.IntegerField(null=True, blank=True)
+    is_checked = models.BooleanField(default=False)
 
 class Attendance(models.Model):
-    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='attendances')
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='attendances')
-    status = models.CharField(max_length=10, default='absent')  # present, absent, late
-    marked_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    marked_at = models.DateTimeField(auto_now=True)
-
-
-class Grade(models.Model):
-    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='grades')
-    title = models.CharField(max_length=200)
-    score = models.DecimalField(max_digits=5, decimal_places=2)
-    max_score = models.DecimalField(max_digits=5, decimal_places=2, default=100)
-    grade_type = models.CharField(max_length=20)  # homework, exam
-    date = models.DateField()
-    given_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    is_present = models.BooleanField(default=False)
 
 class Payment(models.Model):
-    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='payments')
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    payment_date = models.DateField()
-    status = models.CharField(max_length=20, default='paid')
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateTimeField(auto_now_add=True)
+    is_confirmed = models.BooleanField(default=False)
+    
+    @property
+    def teacher_salary(self):
+        return float(self.amount) * 0.50
 
-
-class CodeVerify(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    code = models.CharField(max_length=6)
-    expiration_time = models.DateTimeField()
+    @property
+    def assistant_salary(self):
+        return float(self.amount) * 0.20

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+    
+    <!-- Navbar -->
+    <nav class="bg-gray-900 text-white px-6 py-4 shadow-md flex justify-between items-center">
+        <div class="text-xl font-bold tracking-wider">LMS Platforma</div>
+        <div class="flex items-center space-x-4">
+            <span class="text-sm font-light">Salom, <span class="font-bold border-b border-indigo-400">{{ user.username }}</span> ({{ user.role|title }})</span>
+            <a href="{% url 'logout' %}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-sm font-medium transition duration-300">Chiqish</a>
+        </div>
+    </nav>
+
+    <!-- Asosiy Qism -->
+    <div class="container mx-auto mt-8 px-4 flex-grow text-gray-800">
+        
+        <!-- ================= STUDENT KONTENTI ================= -->
+        {% if user.role == 'student' %}
+        <h2 class="text-2xl font-bold mb-6">Mening Kurslarim va Guruhlarim</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for group in groups %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition duration-200">
+                <h3 class="text-xl font-bold text-indigo-600 mb-2">{{ group.course.name }}</h3>
+                <p class="text-gray-600 mb-4 font-medium">{{ group.name }}</p>
+                <div class="flex flex-col text-sm text-gray-500 mb-4 space-y-1">
+                    <span>Ustoz: <b class="text-gray-700">{{ group.teacher.username }}</b></span>
+                    <span>Yordamchi(Assistant): <b class="text-gray-700">{{ group.assistant.username|default:"Biriktirilmagan" }}</b></span>
+                </div>
+                <button class="w-full bg-indigo-50 text-indigo-700 font-semibold py-2 rounded hover:bg-indigo-100 transition">Darslarga o'tish</button>
+            </div>
+            {% empty %}
+            <div class="col-span-full py-8 text-center bg-white rounded shadow-sm border border-gray-100">
+                <p class="text-gray-500">Hali hech qanday guruhga ulanmagansiz.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- ================= TEACHER KONTENTI ================= -->
+        {% elif user.role == 'teacher' %}
+        <h2 class="text-2xl font-bold mb-6">O'qitayotgan Guruhlarim</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for group in groups %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 border-l-4 border-l-indigo-500">
+                <h3 class="text-xl font-bold text-gray-800 mb-1">{{ group.name }}</h3>
+                <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded mb-4">{{ group.course.name }}</span>
+                <p class="text-gray-600 font-medium pb-4 border-b">O'quvchilar soni: {{ group.students.count }} nafar</p>
+                
+                <div class="mt-4 flex space-x-3">
+                    <button class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition">Davomat qilish</button>
+                    <button class="bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600 transition">Yangi Dars Qoshish</button>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-gray-500">Hech qanday guruhga ustoz qilib biriktirilmagansiz.</p>
+            {% endfor %}
+        </div>
+        
+        <!-- ================= ASSISTANT KONTENTI ================= -->
+        {% elif user.role == 'assistant' %}
+        <h2 class="text-2xl font-bold mb-6">Biriktirilgan Guruhlar (Vazifa tekshirish & Imtihon)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for group in groups %}
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-l-green-500">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">{{ group.name }} </h3>
+                <p class="text-sm text-green-600 mb-3">{{ group.course.name }}</p>
+                <div class="mt-4 space-y-2">
+                    <button class="w-full bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-700 transition">Vazifalarni tekshirish</button>
+                    <button class="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded text-sm hover:bg-gray-300 transition">Imtihon olish</button>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-gray-500">Sizga hali guruhlar biriktirilmagan.</p>
+            {% endfor %}
+        </div>
+
+        <!-- ================= ADMIN KONTENTI ================= -->
+        {% elif user.role == 'admin' %}
+        <h2 class="text-2xl font-bold mb-6">Administrator Boshqaruvi</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center space-x-4">
+                <div class="text-4xl px-3 text-indigo-500">🧑‍🎓</div>
+                <div>
+                   <div class="text-3xl font-bold text-gray-800">{{ stats.students_count }}</div>
+                   <div class="text-gray-500 text-sm">O'quvchilar</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center space-x-4">
+                <div class="text-4xl px-3 text-green-500">👨‍🏫</div>
+                <div>
+                   <div class="text-3xl font-bold text-gray-800">{{ stats.teachers_count }}</div>
+                   <div class="text-gray-500 text-sm">Ustozlar</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center space-x-4">
+                <div class="text-4xl px-3 text-purple-500">📚</div>
+                <div>
+                   <div class="text-3xl font-bold text-gray-800">{{ stats.courses_count }}</div>
+                   <div class="text-gray-500 text-sm">Aktiv Kurslar</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">Admin Tezkor Amallari</h3>
+            <div class="flex flex-wrap gap-4">
+                <button class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">Foydalanuvchi qo'shish (Ustoz/Student)</button>
+                <button class="bg-green-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-green-700 transition">To'lovlarni tasdiqlash</button>
+                <button class="bg-yellow-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-yellow-600 transition">Sertifikat Berish</button>
+                <button class="bg-gray-200 text-gray-800 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-300 transition">Oyliklarni Hisoblash (Moliya)</button>
+            </div>
+        </div>
+        {% endif %}
+        
+    </div>
+</body>
+</html>
