@@ -85,6 +85,12 @@ def teacher_dashboard(request):
     presents = Attendance.objects.filter(group__in=groups, status='present').count()
     avg_attendance = int((presents / total_att) * 100) if total_att > 0 else 0
     
+    # Barcha guruhlaridagi talabalar ro'yxati (takrorlanmas)
+    my_students = User.objects.filter(id__in=Enrollment.objects.filter(group__in=groups, status='approved').values('student_id'))
+    
+    # Bugunlik davomat holati
+    today_attendances = Attendance.objects.filter(group__in=groups, date=today).select_related('student', 'group')
+    
     groups_with_stats = []
     for g in groups:
         groups_with_stats.append({
@@ -101,6 +107,8 @@ def teacher_dashboard(request):
         'avg_attendance': avg_attendance,
         'groups_with_stats': groups_with_stats,
         'today_lessons': today_lessons,
+        'my_students': my_students,
+        'today_attendances': today_attendances,
     }
     return render(request, 'dashboard/teacher.html', context)
 

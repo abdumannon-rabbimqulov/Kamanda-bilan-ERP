@@ -34,7 +34,7 @@
     
     <div class="flex items-center space-x-6 mt-4 md:mt-0 font-medium text-sm">
       <a href="{% url 'dashboard:teacher' %}" class="text-mint border-b-2 border-mint pb-4 -mb-[18px]">Dashboard</a>
-      <a href="#" class="text-gray-400 hover:text-gray-200">Guruhlarim</a>
+      <a href="#groups" class="text-gray-400 hover:text-gray-200">Guruhlarim</a>
       <a href="#" onclick="alert('Davomatni ko\'rish uchun o\'z guruhingizni tanlang'); return false;" class="text-gray-400 hover:text-gray-200">Davomat</a>
       <a href="{% url 'salary:list' %}" class="text-gray-400 hover:text-gray-200">Maosh</a>
     </div>
@@ -62,7 +62,7 @@
           <i class="fa-solid fa-shapes opacity-80"></i>
           <span>Dashboard</span>
         </a>
-        <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+        <a href="#groups" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
           <i class="fa-regular fa-user"></i>
           <span>Guruhlarim</span>
         </a>
@@ -74,7 +74,7 @@
           <i class="fa-solid fa-dollar-sign px-1"></i>
           <span>Maosh</span>
         </a>
-        <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+        <a href="{% url 'chat:index' %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
           <i class="fa-regular fa-message"></i>
           <span>Chat</span>
         </a>
@@ -104,23 +104,23 @@
       <!-- Stats Row -->
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         
-        <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
+        <div onclick="document.getElementById('studentsModal').classList.remove('hidden')" class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col cursor-pointer hover:border-mint hover:shadow-[0_0_15px_rgba(0,230,153,0.1)] transition transform hover:-translate-y-1">
           <span class="text-gray-300 text-sm font-medium mb-2">Jami studentlar</span>
           <span class="text-3xl font-bold text-white mb-1">{{ total_students }}</span>
           <span class="text-mint text-sm font-medium mt-auto">{{ groups_count }} ta guruh</span>
         </div>
         
-        <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col relative overflow-hidden">
+        <a href="{% url 'salary:list' %}" class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col relative overflow-hidden cursor-pointer hover:border-mint hover:shadow-[0_0_15px_rgba(0,230,153,0.1)] transition transform hover:-translate-y-1">
           <div class="absolute -right-2 -top-2 w-12 h-12 bg-mint opacity-5 rounded-full"></div>
           <span class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">Oylik maosh</span>
           <span class="text-2xl font-bold text-white mb-1">{{ salary_amount|intcomma }} <span class="text-mint text-[10px]">UZS</span></span>
-          <span class="text-mint text-[10px] font-bold mt-auto uppercase tracking-tighter">Oxirgi hisoblangan</span>
-        </div>
+          <span class="text-mint text-[10px] font-bold mt-auto uppercase tracking-tighter">Batafsil ko'rish</span>
+        </a>
         
-        <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
+        <div onclick="document.getElementById('attendanceModal').classList.remove('hidden')" class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col cursor-pointer hover:border-mint hover:shadow-[0_0_15px_rgba(0,230,153,0.1)] transition transform hover:-translate-y-1">
           <span class="text-gray-300 text-sm font-medium mb-2">O'rtacha davomat</span>
           <span class="text-3xl font-bold text-white mb-1">{{ avg_attendance }}%</span>
-          <span class="text-mint text-sm font-medium mt-auto">Yaxshi</span>
+          <span class="text-mint text-sm font-medium mt-auto">Bugungi holatni ko'rish</span>
         </div>
         
         <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
@@ -180,7 +180,7 @@
         </div>
         
         <!-- Guruhlar Ro'yxati (2 cols) -->
-        <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg lg:col-span-2">
+        <div id="groups" class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg lg:col-span-2">
           <h3 class="font-bold text-lg text-white mb-6">Barcha guruhlarim</h3>
           <div class="space-y-4 overflow-y-auto max-h-[500px] pr-2">
             {% for item in groups_with_stats %}
@@ -208,9 +208,82 @@
   </div>
 
   <!-- Scroll arrow at bottom -->
-  <div class="fixed bottom-6 right-6">
-    <div class="w-12 h-12 rounded-full border border-gray-700 bg-[#252830] shadow-2xl flex items-center justify-center text-mint cursor-pointer hover:bg-gray-800 transition">
+  <a href="{% url 'chat:index' %}" class="fixed bottom-6 right-6 z-50">
+    <div class="w-12 h-12 rounded-full border border-gray-700 bg-[#252830] shadow-2xl flex items-center justify-center text-mint cursor-pointer hover:bg-gray-800 transition transform hover:scale-110">
       <i class="fa-solid fa-comment-dots text-xl"></i>
+    </div>
+  </a>
+
+  <!-- Students Modal -->
+  <div id="studentsModal" class="hidden fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
+    <div class="card-bg w-full max-w-2xl rounded-2xl border border-gray-700 flex flex-col max-h-[80vh]">
+      <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-white">Barcha Talabalar</h2>
+          <p class="text-sm text-gray-400">Sizning guruhlaringizda o'qiydigan barcha talabalar</p>
+        </div>
+        <button onclick="document.getElementById('studentsModal').classList.add('hidden')" class="text-gray-400 hover:text-white transition p-2">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto">
+        <div class="space-y-3">
+          {% for student in my_students %}
+          <div class="badge-bg p-4 rounded-xl border border-gray-800 flex items-center space-x-4">
+            <div class="w-10 h-10 rounded-full bg-mint-soft flex items-center justify-center font-bold text-[#047857]">
+              {{ student.first_name|first|upper|default:student.username|first|upper }}
+            </div>
+            <div>
+              <p class="text-white font-bold">{{ student.get_full_name|default:student.username }}</p>
+              <p class="text-gray-500 text-xs">{{ student.email }}</p>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-gray-500 text-center py-4">Hozircha talabalar yo'q.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today's Attendance Modal -->
+  <div id="attendanceModal" class="hidden fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
+    <div class="card-bg w-full max-w-3xl rounded-2xl border border-gray-700 flex flex-col max-h-[80vh]">
+      <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-white">Bugungi Davomat Holati</h2>
+          <p class="text-sm text-gray-400">{% now "d-F, Y" %} sifatidagi barcha guruhlar qatnashishi</p>
+        </div>
+        <button onclick="document.getElementById('attendanceModal').classList.add('hidden')" class="text-gray-400 hover:text-white transition p-2">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto">
+        <div class="space-y-3">
+          {% for record in today_attendances %}
+          <div class="badge-bg p-4 rounded-xl border border-gray-800 flex justify-between items-center">
+            <div>
+              <p class="text-white font-bold">{{ record.student.get_full_name|default:record.student.username }}</p>
+              <p class="text-gray-500 text-xs">{{ record.group.name }} guruhida</p>
+            </div>
+            <div>
+              {% if record.status == 'present' %}
+                <span class="bg-green-500/10 text-green-400 text-xs font-bold px-3 py-1.5 rounded-full"><i class="fa-solid fa-check mr-1"></i> Keldi</span>
+              {% elif record.status == 'absent' %}
+                <span class="bg-red-500/10 text-red-400 text-xs font-bold px-3 py-1.5 rounded-full"><i class="fa-solid fa-xmark mr-1"></i> Kelmadi</span>
+              {% else %}
+                <span class="bg-yellow-500/10 text-yellow-400 text-xs font-bold px-3 py-1.5 rounded-full"><i class="fa-solid fa-clock mr-1"></i> Kechikdi</span>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center py-8">
+            <i class="fa-solid fa-calendar-check text-4xl text-gray-600 mb-3"></i>
+            <p class="text-gray-400">Bugun uchun hech qanday davomat belgilanmagan.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
   </div>
 
