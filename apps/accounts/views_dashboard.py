@@ -260,7 +260,7 @@ from apps.accounts.models import User
 @role_required('admin')
 def admin_dashboard(request):
     from apps.courses.models import Enrollment, Group
-    from django.db.models import Sum
+    from django.db.models import Sum, ProtectedError
     from datetime import date
     import datetime
 
@@ -575,8 +575,11 @@ def delete_user(request, user_id):
             messages.error(request, "Admin hisobini o'chirib bo'lmaydi!")
             return redirect('dashboard:admin')
         name = user.get_full_name() or user.username
-        user.delete()
-        messages.success(request, f"{name} tizimdan o'chirildi.")
+        try:
+            user.delete()
+            messages.success(request, f"{name} tizimdan o'chirildi.")
+        except ProtectedError:
+            messages.error(request, f"Xatolik: {name} o'chira olmaysiz. Chunki unga bog'langan faol guruhlar, maoshlar yoki boshqa ma'lumotlar mavjud. Avval ularni boshqa o'qituvchiga o'tkazing yoki o'chiring.")
     return redirect('dashboard:admin')
 
 
@@ -672,11 +675,14 @@ def update_group(request, group_id):
 @login_required
 @role_required('admin')
 def delete_group(request, group_id):
+    from django.db.models import ProtectedError
     group = get_object_or_404(Group, id=group_id)
     if request.method == 'POST':
-        name = group.name
-        group.delete()
-        messages.success(request, f"'{name}' guruhi ochirildi.")
+        try:
+            group.delete()
+            messages.success(request, f"'{group.name}' guruhi o'chirildi.")
+        except ProtectedError:
+            messages.error(request, f"Xatolik: '{group.name}' guruhini o'chira olmaysiz. Chunki bu guruhda ro'yxatdan o'tgan talabalar yoki mavjud darslar bor. Avval talabalarni boshqa guruhga o'tkazing.")
     return redirect('dashboard:admin')
 
 # ─────────────────────────────────────────────

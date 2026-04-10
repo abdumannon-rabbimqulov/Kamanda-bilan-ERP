@@ -2,7 +2,7 @@ from django.db import models
 from apps.accounts.models import User
 
 class Salary(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
     month = models.DateField()
     students_count = models.IntegerField()
     percent = models.IntegerField()  # 50 for teacher, 20 for assistant

@@ -6,7 +6,7 @@ class Course(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     thumbnail = models.ImageField(upload_to='courses/')
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='courses')
+    teacher = models.ForeignKey(User, on_delete=models.PROTECT, related_name='courses')
     category = models.CharField(max_length=100)
     success_rate = models.FloatField(default=0)
     students_count = models.IntegerField(default=0)
@@ -21,8 +21,8 @@ class Group(models.Model):
         ('daily','Har kuni')
     ]
     name = models.CharField(max_length=100)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='groups_taught')
+    course = models.ForeignKey(Course, on_delete=models.PROTECT)
+    teacher = models.ForeignKey(User, on_delete=models.PROTECT, related_name='groups_taught')
     assistant = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='groups_assisted')
     max_students = models.IntegerField(default=20)
     start_date = models.DateField()
@@ -36,8 +36,8 @@ class Group(models.Model):
 
 class Enrollment(models.Model):
     STATUS = [('pending','Pending'),('approved','Approved'),('rejected','Rejected')]
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    student = models.ForeignKey(User, on_delete=models.PROTECT)
+    group = models.ForeignKey(Group, on_delete=models.PROTECT)
     status = models.CharField(max_length=20, choices=STATUS, default='pending')
     enrolled_at = models.DateTimeField(auto_now_add=True)
     approved_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='approved_enrollments')
