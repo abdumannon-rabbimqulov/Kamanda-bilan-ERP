@@ -1,3 +1,4 @@
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -54,7 +55,7 @@
     <aside class="w-64 shrink-0 border-r border-gray-700 pr-4 mr-6 hidden lg:block">
       <span class="text-gray-500 text-xs font-bold tracking-wider mb-4 block uppercase px-2">Student Dashboard</span>
       <nav class="space-y-1">
-        <a href="#" class="flex items-center space-x-3 bg-mint-soft px-4 py-3 rounded-lg font-medium text-green-900 border border-green-200 mb-2 shadow-sm transition">
+        <a href="/dashboard/" class="flex items-center space-x-3 bg-mint-soft px-4 py-3 rounded-lg font-medium text-green-900 border border-green-200 mb-2 shadow-sm transition">
           <i class="fa-solid fa-shapes opacity-80"></i>
           <span>Dashboard</span>
         </a>
@@ -62,14 +63,16 @@
           <i class="fa-solid fa-book-open"></i>
           <span>Kurslar</span>
         </a>
-        <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+        {% if active_enrollment %}
+        <a href="{% url 'homework:list' active_enrollment.group.id %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
           <i class="fa-solid fa-check-to-slot"></i>
           <span>Vazifalar</span>
         </a>
-        <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
-          <i class="fa-solid fa-user-group"></i>
-          <span>Chat</span>
+        <a href="{% url 'exams:list' active_enrollment.group.id %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>Natijalar</span>
         </a>
+        {% endif %}
         
         <a href="{% url 'auth:logout' %}" class="flex items-center space-x-3 text-red-400 hover:text-red-300 hover:bg-[#252830] px-4 py-3 rounded-lg font-medium mt-12 transition">
           <i class="fa-solid fa-arrow-right-from-bracket"></i>
@@ -220,13 +223,13 @@
                 <p class="text-white font-bold text-sm">{{ enr.group.course.title }}</p>
                 <p class="text-mint text-[11px] font-bold mt-0.5 tracking-wider">{{ enr.group.name }}</p>
                 <div class="flex items-center gap-4 mt-2">
-                  <span class="text-gray-400 text-xs">Kurs: <strong class="text-white">{{ enr.group.course.price|floatformat:0 }} UZS</strong></span>
-                  <span class="text-gray-400 text-xs">To'langan: <strong class="{% if enr.amount_paid >= enr.group.course.price %}text-mint{% else %}text-orange-400{% endif %}">{{ enr.amount_paid|floatformat:0 }} UZS</strong></span>
+                  <span class="text-gray-400 text-xs">Kurs: <strong class="text-white">{{ enr.group.course.price|intcomma }} UZS</strong></span>
+                  <span class="text-gray-400 text-xs">To'langan: <strong class="{% if enr.amount_paid >= enr.group.course.price %}text-mint{% else %}text-orange-400{% endif %}">{{ enr.amount_paid|intcomma }} UZS</strong></span>
                 </div>
               </div>
               <div class="flex items-center gap-2 flex-shrink-0">
                 {% if enr.balance_status == 'excess' %}
-                <span class="bg-[#d1fae5] text-[#065f46] text-xs px-3 py-1 rounded-full font-bold border border-green-200">✓ Haqdor: {{ enr.remaining_debt|abs|intcomma }} UZS</span>
+                <span class="bg-[#d1fae5] text-[#065f46] text-xs px-3 py-1 rounded-full font-bold border border-green-200">✓ Haqdor: {{ enr.remaining_debt_abs|intcomma }} UZS</span>
                 {% elif enr.balance_status == 'paid' %}
                 <span class="bg-[#d1fae5] text-[#065f46] text-xs px-3 py-1 rounded-full font-bold border border-green-200">✓ To'liq To'langan</span>
                 {% else %}

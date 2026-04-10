@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Imtihon Yaratish - LMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #1a1c23; color: #e2e8f0; font-family: Inter, sans-serif; }
+    .card-bg { background-color: #252830; }
+    .text-mint { color: #00e699; }
+    .bg-mint { background-color: #00e699; }
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+
+  <div class="max-w-xl w-full">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-bold text-white tracking-tight">Yangi imtihon</h1>
+        <a href="{% url 'exams:list' group.id %}" class="text-gray-400 hover:text-white transition text-sm">Bekor qilish</a>
+    </div>
+
+    <form method="POST" class="card-bg p-8 rounded-3xl border border-gray-700 shadow-2xl space-y-6">
+      {% csrf_token %}
+      
+      <div>
+        <label class="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Imtihon nomi</label>
+        <input type="text" name="title" required placeholder="Masalan: 3-modul natijalari"
+          class="w-full bg-[#1a1c23] border border-gray-600 rounded-xl px-4 py-3 text-white outline-none focus:border-mint transition">
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Tur</label>
+          <select name="exam_type" class="w-full bg-[#1a1c23] border border-gray-600 rounded-xl px-4 py-3 text-white outline-none focus:border-mint transition">
+            <option value="weekly">Haftalik</option>
+            <option value="monthly">Oylik</option>
+            <option value="final">Final</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Maksimal ball</label>
+          <input type="number" name="max_score" value="100" required
+            class="w-full bg-[#1a1c23] border border-gray-600 rounded-xl px-4 py-3 text-white outline-none focus:border-mint transition">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Sana</label>
+        <input type="date" name="date" required
+          class="w-full bg-[#1a1c23] border border-gray-600 rounded-xl px-4 py-3 text-white outline-none focus:border-mint transition">
+      </div>
+
+      <button type="submit" class="w-full bg-mint text-green-900 font-black py-4 rounded-xl shadow-lg hover:bg-[#00cc88] transition transform active:scale-95">
+        IMTIHONNI YARATISH
+      </button>
+    </form>
+  </div>
+
+</body>
+</html>

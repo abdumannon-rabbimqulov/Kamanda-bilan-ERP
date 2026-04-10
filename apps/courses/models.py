@@ -39,7 +39,12 @@ class Enrollment(models.Model):
         return self.group.course.price - self.amount_paid
 
     @property
+    def remaining_debt_abs(self):
+        return abs(self.remaining_debt)
+
+    @property
     def balance_status(self):
+
         debt = self.remaining_debt
         if debt > 0: return 'debt'
         if debt < 0: return 'excess'

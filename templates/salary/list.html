@@ -77,29 +77,69 @@
         </div>
       {% endif %}
 
-      <!-- Top Dashboard row -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+      <!-- Top Dashboard row (Global) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg relative overflow-hidden">
-             <!-- Decorator -->
-             <div class="absolute -right-4 -top-4 w-24 h-24 bg-mint opacity-10 rounded-full"></div>
-             <p class="text-gray-400 text-sm font-medium mb-1">Tizim bo'yicha jami to'lovlar</p>
-             <h2 class="text-3xl font-bold text-white tracking-tight">{{ total_paid_str }}</h2>
-             <div class="mt-4 inline-flex items-center space-x-1.5 text-xs font-medium text-mint bg-mint-soft/10 px-2.5 py-1 rounded-full border border-green-900/30">
-                <i class="fa-solid fa-chart-line"></i> <span>Monitoring ishlashda davom etmoqda</span>
-             </div>
+             <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500 opacity-10 rounded-full"></div>
+             <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Jami Tushum</p>
+             <h2 class="text-2xl font-bold text-white tracking-tight">{{ gross_total|intcomma }} <span class="text-mint text-xs">UZS</span></h2>
+             <p class="text-[10px] text-gray-500 mt-2 font-medium">Barcha muvaffaqiyatli to'lovlar</p>
         </div>
         
-        <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg flex flex-col justify-center items-start">
-             <p class="text-gray-400 text-sm font-medium mb-3">Ma'lumotlar hisoboti</p>
-             {% if latest_month %}
-             <a href="{% url 'salary:export_pdf' latest_month|date:'Y-m' %}" class="bg-transparent border border-gray-500 hover:border-gray-300 text-white font-bold text-sm py-2.5 px-5 rounded-xl transition flex items-center shadow-sm w-full sm:w-auto justify-center">
-                 <i class="fa-solid fa-file-pdf mr-2 text-red-500"></i> {{ latest_month|date:"F Y" }} oyini eksport qilish
-             </a>
-             {% else %}
-             <span class="text-gray-500 text-sm">Eksport uchun maoshlar topilmadi.</span>
-             {% endif %}
+        <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg relative overflow-hidden">
+             <div class="absolute -right-4 -top-4 w-24 h-24 bg-red-500 opacity-10 rounded-full"></div>
+             <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">To'langan Maoshlar</p>
+             <h2 class="text-2xl font-bold text-white tracking-tight">{{ total_paid|intcomma }} <span class="text-red-400 text-xs">UZS</span></h2>
+             <p class="text-[10px] text-gray-500 mt-2 font-medium">Tizimdan chiqib ketgan mablag'</p>
+        </div>
+
+        <div class="card-bg p-6 rounded-2xl border border-green-500/30 shadow-lg relative overflow-hidden">
+             <div class="absolute -right-4 -top-4 w-24 h-24 bg-mint opacity-20 rounded-full"></div>
+             <p class="text-mint text-xs font-bold uppercase tracking-widest mb-1">Markaz Balansi</p>
+             <h2 class="text-2xl font-bold text-white tracking-tight">{{ center_balance|intcomma }} <span class="text-mint text-xs">UZS</span></h2>
+             <div class="mt-4 inline-flex items-center space-x-1.5 text-[10px] font-bold text-mint bg-mint-soft/10 px-2 rounded-full border border-green-900/30">
+                <i class="fa-solid fa-vault"></i> <span>Kassa Qoldig'i</span>
+             </div>
         </div>
       </div>
+
+      <!-- Monthly Report (Filtered) -->
+      {% if latest_month %}
+      <div class="bg-[#1a1c23] border border-gray-700 p-6 rounded-2xl mb-8 shadow-inner">
+        <div class="flex justify-between items-center mb-6">
+           <h3 class="font-bold text-gray-300 flex items-center gap-2">
+             <i class="fa-solid fa-calendar-check text-mint"></i> 
+             {{ latest_month|date:"F Y" }} uchun hisobot
+           </h3>
+           <div class="flex items-center gap-3">
+             {% if latest_month %}
+             <a href="{% url 'salary:export_pdf' latest_month|date:'Y-m' %}" class="bg-[#252830] border border-gray-600 hover:border-gray-400 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full transition flex items-center shadow-sm">
+                 <i class="fa-solid fa-file-pdf mr-2 text-red-500"></i> PDF Eksport
+             </a>
+             {% endif %}
+             <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest border border-gray-700 px-3 py-1 rounded-full">Oylik Balans</span>
+           </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+           <div class="flex flex-col">
+              <span class="text-[10px] text-gray-500 font-bold uppercase mb-1">Tushum</span>
+              <span class="text-white font-bold text-lg">{{ monthly_revenue|intcomma }}</span>
+           </div>
+           <div class="flex flex-col">
+              <span class="text-[10px] text-gray-500 font-bold uppercase mb-1">Xarajat (Maosh)</span>
+              <span class="text-white font-bold text-lg text-red-400">{{ monthly_expense|intcomma }}</span>
+           </div>
+           <div class="flex flex-col">
+              <span class="text-[10px] text-gray-500 font-bold uppercase mb-1">Sof Foyda</span>
+              <span class="text-xl font-black {% if monthly_profit >= 0 %}text-mint{% else %}text-red-500{% endif %}">
+                {% if monthly_profit > 0 %}+{% endif %}{{ monthly_profit|intcomma }}
+              </span>
+           </div>
+        </div>
+      </div>
+      {% endif %}
+
 
       <!-- Data Table -->
       <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg">

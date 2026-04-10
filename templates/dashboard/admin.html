@@ -1,3 +1,4 @@
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -133,25 +134,29 @@
       <div id="tab-dashboard" class="tab-content">
           <!-- Stats Row -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
-              <span class="text-gray-300 text-sm font-medium mb-2">Jami studentlar</span>
-              <span class="text-4xl font-bold text-white mb-1">{{ total_students }}</span>
-              <span class="text-mint text-sm font-medium mt-auto">+8 bu oy</span>
+            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col relative overflow-hidden">
+              <div class="absolute -right-2 -top-2 w-12 h-12 bg-blue-500 opacity-5 rounded-full"></div>
+              <span class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-3">Jami studentlar</span>
+              <span class="text-2xl font-bold text-white mb-1">{{ total_students }}</span>
+              <span class="text-mint text-[10px] font-bold mt-auto uppercase tracking-tighter">Faol o'quvchilar</span>
             </div>
-            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
-              <span class="text-gray-300 text-sm font-medium mb-2">Jami daromad</span>
-              <span class="text-4xl font-bold text-white mb-1">{{ total_revenue|default:'0' }}</span>
-              <span class="text-mint text-sm font-medium mt-auto">UZS bu oy</span>
+            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col relative overflow-hidden">
+               <div class="absolute -right-2 -top-2 w-12 h-12 bg-mint opacity-5 rounded-full"></div>
+               <span class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-3">Jami tushum</span>
+               <span class="text-2xl font-bold text-white mb-1">{{ total_revenue|intcomma }} <span class="text-mint text-[10px]">UZS</span></span>
+               <span class="text-mint text-[10px] font-bold mt-auto uppercase tracking-tighter">Umumiy yig'ilgan</span>
             </div>
-            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
-              <span class="text-gray-300 text-sm font-medium mb-2">Faol guruhlar</span>
-              <span class="text-4xl font-bold text-white mb-1">{{ active_groups }}</span>
-              <span class="text-mint text-sm font-medium mt-auto">2 ta yangi</span>
+            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col relative overflow-hidden">
+               <div class="absolute -right-2 -top-2 w-12 h-12 bg-red-500 opacity-5 rounded-full"></div>
+               <span class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-3">Maoshlar to'lovi</span>
+               <span class="text-2xl font-bold text-white mb-1">{{ total_paid|intcomma }} <span class="text-red-400 text-[10px]">UZS</span></span>
+               <span class="text-red-400 text-[10px] font-bold mt-auto uppercase tracking-tighter">Umumiy xarajat</span>
             </div>
-            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
-              <span class="text-gray-300 text-sm font-medium mb-2">Kutilayotgan</span>
-              <span class="text-4xl font-bold text-white mb-1">{{ pending_count }}</span>
-              <span class="text-mint text-sm font-medium mt-auto">Tasdiqlash kerak</span>
+            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col relative overflow-hidden ring-1 ring-mint/20">
+               <div class="absolute -right-2 -top-2 w-12 h-12 bg-mint opacity-20 rounded-full"></div>
+               <span class="text-mint text-[10px] font-bold uppercase tracking-widest mb-3">Kassa balansi</span>
+               <span class="text-2xl font-bold text-white mb-1">{{ center_balance|intcomma }} <span class="text-mint text-[10px]">UZS</span></span>
+               <span class="text-mint text-[10px] font-bold mt-auto uppercase tracking-tighter">Markaz sof foydasi</span>
             </div>
           </div>
     

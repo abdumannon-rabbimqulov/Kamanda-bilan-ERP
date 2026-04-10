@@ -34,6 +34,12 @@ def payments_dashboard(request):
     total_debt = max(total_expected - total_collected, 0)
     debtors_count = sum(1 for e in enrollments if e.status == 'approved' and e.amount_paid < e.group.course.price)
 
+    # Center Balance (Net Profit): Total Collected - Total Salary Paid
+    from apps.salary.models import Salary
+    total_salaries_paid = Salary.objects.filter(is_paid=True).aggregate(total=Sum('total_amount'))['total'] or 0
+    center_balance = total_collected - total_salaries_paid
+
+
 
     # Salary payments sent
     salary_payments = Payment.objects.filter(method='salary_transfer').select_related('enrollment').order_by('-paid_at')[:20]
@@ -45,6 +51,8 @@ def payments_dashboard(request):
         'total_debt': total_debt,
         'debtors_count': debtors_count,
         'salary_payments': salary_payments,
+        'center_balance': center_balance,
+        'total_paid': total_salaries_paid,
     })
 
 
@@ -67,6 +75,7 @@ def record_student_payment(request):
         enr = get_object_or_404(Enrollment, id=enrollment_id)
         group = enr.group
         course_price = group.course.price
+        method = request.POST.get('method', 'cash')
 
         enr.amount_paid = Decimal(str(enr.amount_paid)) + amount
         enr.save()
@@ -77,8 +86,7 @@ def record_student_payment(request):
             amount=amount,
             method=method,
             transaction_id=str(uuid.uuid4()),
-            status='success',
-            processed_by=request.user
+            status='success'
         )
 
         # ── Foiz bo'yicha avtomatik maosh taqsimlash ──
@@ -214,7 +222,7 @@ def student_make_payment(request):
         course_price = enr.group.course.price
 
         # Simulate online payment (in real project: Click/Payme API)
-        enr.amount_paid = min(enr.amount_paid + amount, course_price)
+        enr.amount_paid = Decimal(str(enr.amount_paid)) + amount
         enr.save()
 
         Payment.objects.create(
@@ -225,12 +233,16 @@ def student_make_payment(request):
             status='success'
         )
 
-        remaining = course_price - enr.amount_paid
-        if remaining <= 0:
-            msg_body = f"{enr.group.course.title} kursi uchun to'lovni to'liq amalga oshirdingiz. Tabriklaymiz!"
-            title = "To'lov muvaffaqiyatli ✅"
+        debt = enr.remaining_debt
+        if debt <= 0:
+            if debt < 0:
+                msg_body = f"{enr.group.course.title} uchun to'lov qabul qilindi. Sizda {float(abs(debt)):,.0f} UZS haqdorlik (ortiqcha to'lov) mavjud."
+                title = "Haqdorlik balansi ✅"
+            else:
+                msg_body = f"{enr.group.course.title} kursi uchun to'lovni to'liq amalga oshirdingiz. Tabriklaymiz!"
+                title = "To'lov muvaffaqiyatli ✅"
         else:
-            msg_body = f"To'lovingiz qabul qilindi. Kurs uchun qolgan qarz: {float(remaining):,.0f} UZS."
+            msg_body = f"To'lovingiz qabul qilindi. Kurs uchun qolgan qarz: {float(debt):,.0f} UZS."
             title = "Qisman to'lov amalga oshirildi"
 
         send_notification(request.user, title, msg_body)
