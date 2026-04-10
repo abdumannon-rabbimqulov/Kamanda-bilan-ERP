@@ -148,6 +148,16 @@ def send_salary_payment(request):
         from django.utils import timezone
         salary = get_object_or_404(Salary, id=salary_id)
 
+        # Check Center Balance
+        from django.db.models import Sum
+        total_collected = Payment.objects.filter(status='success').exclude(method='salary_transfer').aggregate(total=Sum('amount'))['total'] or 0
+        total_salaries_paid = Salary.objects.filter(is_paid=True).aggregate(total=Sum('total_amount'))['total'] or 0
+        center_balance = total_collected - total_salaries_paid
+
+        if center_balance < salary.total_amount:
+            messages.error(request, "Xatolik: Markaz balansi ushbu maoshni to'lash uchun yetarli emas!")
+            return redirect('salary:list')
+
         # Mark as paid
         salary.is_paid = True
         salary.paid_at = timezone.now()
