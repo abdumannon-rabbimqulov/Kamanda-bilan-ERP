@@ -312,7 +312,7 @@
          <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg mb-6">
             <div class="flex justify-between items-center mb-6">
                <h3 class="font-bold text-lg text-white tracking-wide">Faol Va Kutilayotgan Guruhlar</h3>
-               <button class="bg-[#252830] text-gray-300 hover:text-white border border-gray-600 px-4 py-2 rounded-lg text-sm font-bold transition">
+               <button onclick="document.getElementById('groupModal').style.display='flex'" class="bg-[#252830] text-gray-300 hover:text-white border border-gray-600 px-4 py-2 rounded-lg text-sm font-bold transition">
                  + Yangi guruh ochish
                </button>
             </div>
@@ -374,10 +374,91 @@
     </main>
   </div>
 
+  <!-- Group Creation Modal -->
+  <div id="groupModal" class="fixed inset-0 bg-black bg-opacity-70 z-[10001] hidden items-center justify-center p-4">
+      <div class="bg-[#252830] rounded-2xl w-full max-w-2xl p-6 border border-gray-700 shadow-2xl relative overflow-y-auto max-h-[90vh]">
+          <button onclick="this.closest('#groupModal').style.display='none'" class="absolute top-4 right-4 text-gray-400 hover:text-white border border-transparent hover:border-gray-500 rounded p-1">
+              <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+          
+          <h2 class="text-xl font-bold text-white mb-6">Yangi Guruh Ochish</h2>
+          
+          <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="create_group" value="1">
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-1.5">Guruh Nomi</label>
+                    <input type="text" name="name" required placeholder="Python-101" class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-mint transition">
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-1.5">Kurs</label>
+                    <select name="course_id" required class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-mint transition">
+                        {% for c in all_courses %}
+                        <option value="{{ c.id }}">{{ c.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-1.5">Asosiy O'qituvchi</label>
+                    <select name="teacher_id" required class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-mint transition">
+                        {% for t in teachers_only %}
+                        <option value="{{ t.id }}">{{ t.get_full_name|default:t.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-1.5">Yordamchi (Ixtiyoriy)</label>
+                    <select name="assistant_id" class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-mint transition">
+                        <option value="">Yana bir marta tanlang...</option>
+                        {% for a in assistants_only %}
+                        <option value="{{ a.id }}">{{ a.get_full_name|default:a.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-1.5">Boshlanish Sana</label>
+                    <input type="date" name="start_date" required class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-mint transition">
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-1.5">Tugash Sana</label>
+                    <input type="date" name="end_date" required class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-mint transition">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-1.5">Haftalik Jadval</label>
+                    <select name="schedule_type" required class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-mint transition">
+                        <option value="3_days">Haftada 3 kun (Du-Cho-Ju)</option>
+                        <option value="5_days">Haftada 5 kun (Du-Ju)</option>
+                        <option value="daily">Har kuni (Du-Sha)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-1.5">Dars Vaqti</label>
+                    <input type="time" name="lesson_start_time" required value="10:00" class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-mint transition">
+                </div>
+              </div>
+              
+              <button type="submit" class="w-full bg-mint text-green-900 font-extrabold py-3.5 rounded-xl hover:bg-[#00cc88] transition shadow-lg uppercase tracking-widest">
+                Guruhni Ochish va Darslarni Yaratish
+              </button>
+          </form>
+      </div>
+  </div>
+
   <!-- User Creation Modal -->
-  <div id="userModal" class="fixed inset-0 bg-black bg-opacity-70 z-50 items-center justify-center p-4">
+  <div id="userModal" class="fixed inset-0 bg-black bg-opacity-70 z-[10001] hidden items-center justify-center p-4">
       <div class="bg-[#252830] rounded-2xl w-full max-w-md p-6 border border-gray-700 shadow-2xl relative">
-          <button onclick="document.getElementById('userModal').classList.remove('show')" class="absolute top-4 right-4 text-gray-400 hover:text-white border border-transparent hover:border-gray-500 rounded p-1">
+          <button onclick="this.closest('#userModal').style.display='none'" class="absolute top-4 right-4 text-gray-400 hover:text-white border border-transparent hover:border-gray-500 rounded p-1">
               <i class="fa-solid fa-xmark text-xl"></i>
           </button>
           

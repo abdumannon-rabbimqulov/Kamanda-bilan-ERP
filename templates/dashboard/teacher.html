@@ -1,3 +1,4 @@
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -32,11 +33,10 @@
     </div>
     
     <div class="flex items-center space-x-6 mt-4 md:mt-0 font-medium text-sm">
-      <a href="#" class="text-mint border-b-2 border-mint pb-4 -mb-[18px]">Dashboard</a>
+      <a href="{% url 'dashboard:teacher' %}" class="text-mint border-b-2 border-mint pb-4 -mb-[18px]">Dashboard</a>
       <a href="#" class="text-gray-400 hover:text-gray-200">Guruhlarim</a>
-      <a href="#" class="text-gray-400 hover:text-gray-200">Dars qo'shish</a>
-      <a href="#" class="text-gray-400 hover:text-gray-200">Davomat</a>
-      <a href="#" class="text-gray-400 hover:text-gray-200">Maosh</a>
+      <a href="#" onclick="alert('Davomatni ko\'rish uchun o\'z guruhingizni tanlang'); return false;" class="text-gray-400 hover:text-gray-200">Davomat</a>
+      <a href="{% url 'salary:list' %}" class="text-gray-400 hover:text-gray-200">Maosh</a>
     </div>
 
     <!-- User Profile right -->
@@ -58,19 +58,19 @@
     <!-- Left Sidebar -->
     <aside class="w-64 shrink-0 border-r border-gray-700 pr-4 mr-6 hidden lg:block">
       <nav class="space-y-1">
-        <a href="#" class="flex items-center space-x-3 bg-mint-soft px-4 py-3 rounded-lg font-medium text-green-900 border border-green-200 mb-2 shadow-sm transition">
+        <a href="{% url 'dashboard:teacher' %}" class="flex items-center space-x-3 bg-mint-soft px-4 py-3 rounded-lg font-medium text-green-900 border border-green-200 mb-2 shadow-sm transition">
           <i class="fa-solid fa-shapes opacity-80"></i>
           <span>Dashboard</span>
         </a>
-        <a href="/" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
-          <i class="fa-regular fa-user"></i>
-          <span>Guruhlar</span>
-        </a>
         <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+          <i class="fa-regular fa-user"></i>
+          <span>Guruhlarim</span>
+        </a>
+        <a href="#" onclick="alert('Davomatni ko\'rish uchun o\'z guruhingizni tanlang'); return false;" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
           <i class="fa-regular fa-clock"></i>
           <span>Davomat</span>
         </a>
-        <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+        <a href="{% url 'salary:list' %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
           <i class="fa-solid fa-dollar-sign px-1"></i>
           <span>Maosh</span>
         </a>
@@ -89,6 +89,18 @@
     <!-- Main Right Content -->
     <main class="flex-1 overflow-y-auto pb-10">
       
+      <!-- Messages/Alerts -->
+      {% if messages %}
+      <div class="mb-4 space-y-2">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl border {% if message.tags == 'error' %}bg-red-900/20 border-red-500 text-red-200{% else %}bg-mint/10 border-mint/20 text-mint{% endif %} text-sm flex items-center space-x-3">
+          <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+          <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       <!-- Stats Row -->
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         
@@ -112,105 +124,82 @@
         </div>
         
         <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
-          <span class="text-gray-300 text-sm font-medium mb-2">Yangi so'rovlar</span>
-          <span class="text-3xl font-bold text-white mb-1">3</span>
-          <span class="text-mint text-sm font-medium mt-auto">Tasdiqlash kerak</span>
+          <span class="text-gray-300 text-sm font-medium mb-2">Bugungi darslar</span>
+          <span class="text-3xl font-bold text-white mb-1">{{ today_lessons|length }}</span>
+          <span class="text-mint text-sm font-medium mt-auto">Reja asosida</span>
         </div>
         
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
         
-        <!-- Guruhlarim (3 cols) -->
+        <!-- Bugungi Darslar (3 cols) -->
         <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg lg:col-span-3">
           <div class="flex justify-between items-center mb-6">
-            <h3 class="font-bold text-lg text-white tracking-wide">Guruhlarim</h3>
-            <button class="bg-transparent border border-gray-500 hover:border-gray-300 text-gray-300 px-4 py-1.5 rounded-lg text-sm transition">
-              + Dars qo'shish
-            </button>
+            <h3 class="font-bold text-lg text-white tracking-wide">Bugungi darslar jadvali</h3>
+            <span class="text-gray-400 text-sm">{% now "d-F, Y" %}</span>
           </div>
           
           <div class="space-y-4">
-            {% for item in groups_with_stats %}
-            <div class="badge-bg p-5 rounded-2xl border border-gray-700 flex flex-col transition hover:border-gray-500">
-              <div class="flex justify-between items-start mb-4">
-                <div class="flex items-center space-x-3">
-                  <div class="w-2.5 h-2.5 rounded-full {% if item.is_new %}bg-gray-500{% else %}bg-mint{% endif %}"></div>
-                  <div>
-                    <h4 class="text-white font-bold text-[16px]">{{ item.group.name }}</h4>
-                    <p class="text-gray-400 text-xs mt-0.5">{{ item.group.course.title }}</p>
-                  </div>
+            {% for lesson in today_lessons %}
+            <div class="badge-bg p-5 rounded-2xl border border-gray-700 flex flex-col md:flex-row md:items-center justify-between transition hover:border-gray-500">
+              <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                <div class="w-12 h-12 rounded-xl bg-mint/10 border border-mint/20 flex flex-col items-center justify-center">
+                  <span class="text-mint font-bold text-lg leading-none">{{ lesson.group.lesson_start_time|time:"H:i" }}</span>
                 </div>
-                {% if item.is_new %}
-                   <span class="bg-[#fef3c7] text-yellow-800 text-[10px] font-black uppercase px-2 py-1 rounded shadow-sm">Yangi</span>
-                {% else %}
-                   <span class="bg-mint/10 text-mint text-[10px] font-black uppercase px-2 py-1 rounded border border-mint/20">Faol</span>
-                {% endif %}
+                <div>
+                  <h4 class="text-white font-bold text-[16px]">{{ lesson.group.name }}</h4>
+                  <p class="text-gray-400 text-xs">{{ lesson.title }} • {{ lesson.group.course.title }}</p>
+                </div>
               </div>
               
-              <div class="grid grid-cols-3 gap-2 mt-auto">
-                <a href="{% url 'attendance:list' item.group.id %}" class="bg-[#1a1c23] border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 py-2 rounded-lg text-center transition flex flex-col items-center">
-                  <i class="fa-solid fa-clock-rotate-left mb-1 text-[10px]"></i>
-                  <span class="text-[9px] font-bold uppercase">Davomat</span>
-                </a>
-                <a href="{% url 'exams:list' item.group.id %}" class="bg-[#1a1c23] border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 py-2 rounded-lg text-center transition flex flex-col items-center">
-                  <i class="fa-solid fa-graduation-cap mb-1 text-[10px]"></i>
-                  <span class="text-[9px] font-bold uppercase">Imtihon</span>
-                </a>
-                <a href="{% url 'homework:list' item.group.id %}" class="bg-[#1a1c23] border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 py-2 rounded-lg text-center transition flex flex-col items-center">
-                  <i class="fa-solid fa-book mb-1 text-[10px]"></i>
-                  <span class="text-[9px] font-bold uppercase">Vazifa</span>
-                </a>
+              <div class="flex items-center space-x-2">
+                {% if lesson.started_at %}
+                  <div class="flex items-center space-x-2">
+                    <span class="bg-mint/10 text-mint text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg border border-mint/20 flex items-center">
+                      <i class="fa-solid fa-play mr-2 text-[8px]"></i>Boshlangan: {{ lesson.started_at|time:"H:i" }}
+                    </span>
+                    <a href="{% url 'attendance:mark' lesson.group.id %}" class="bg-gray-800 border border-gray-700 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-700 transition">
+                      Davomat
+                    </a>
+                  </div>
+                {% else %}
+                  <a href="{% url 'courses:start_lesson' lesson.id %}" class="bg-mint text-black px-6 py-2 rounded-xl text-xs font-bold hover:shadow-[0_0_15px_rgba(0,230,153,0.4)] transition uppercase tracking-wider">
+                    Darsni boshlash
+                  </a>
+                {% endif %}
               </div>
             </div>
             {% empty %}
-             <div class="text-gray-500 py-4">Hozircha guruhlar yo'q.</div>
+              <div class="flex flex-col items-center justify-center py-12 text-gray-500">
+                <i class="fa-solid fa-calendar-day text-4xl mb-4 opacity-20"></i>
+                <p>Bugunga darslar rejalashtirilmagan.</p>
+              </div>
             {% endfor %}
           </div>
         </div>
         
-        <!-- Davomat belgilash (2 cols) -->
-        <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg lg:col-span-2 flex flex-col">
-          <h3 class="font-bold text-lg text-white tracking-wide">Davomat belgilash</h3>
-          <p class="text-gray-400 text-sm mb-6">{{ active_group.name|default:"Guruh yo'q" }} • Bugun</p>
-          
-          {% if active_group %}
-          <form method="POST" class="flex flex-col flex-1">
-            {% csrf_token %}
-            <div class="space-y-4 flex-1 overflow-y-auto max-h-[300px] pr-2">
-              {% for st in active_group_students %}
-              <div class="flex items-center justify-between text-sm py-1 border-b border-gray-800 last:border-0">
-                <span class="text-white">{{ st.last_name|default:st.username }} {{ st.first_name|first|default:'' }}.</span>
-                
-                <!-- Custom Radio Buttons for Present / Absent -->
-                <div class="flex space-x-2">
-                  <label class="relative inline-block cursor-pointer">
-                    <input type="radio" name="attendance_{{ st.id }}" value="present" class="peer hidden" checked>
-                    <div class="att-label-present w-7 h-7 flex items-center justify-center rounded border border-gray-700 text-gray-500 opacity-70 peer-checked:opacity-100 hover:bg-gray-700 transition">
-                      <i class="fa-solid fa-check text-xs"></i>
-                    </div>
-                  </label>
-                  
-                  <label class="relative inline-block cursor-pointer">
-                    <input type="radio" name="attendance_{{ st.id }}" value="absent" class="peer hidden">
-                    <div class="att-label-absent w-7 h-7 flex items-center justify-center rounded border border-gray-700 text-gray-500 opacity-70 peer-checked:opacity-100 hover:bg-gray-700 transition">
-                      <i class="fa-solid fa-xmark text-xs"></i>
-                    </div>
-                  </label>
+        <!-- Guruhlar Ro'yxati (2 cols) -->
+        <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg lg:col-span-2">
+          <h3 class="font-bold text-lg text-white mb-6">Barcha guruhlarim</h3>
+          <div class="space-y-4 overflow-y-auto max-h-[500px] pr-2">
+            {% for item in groups_with_stats %}
+            <div class="badge-bg p-4 rounded-xl border border-gray-800 hover:border-gray-600 transition">
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h5 class="text-white font-bold text-sm">{{ item.group.name }}</h5>
+                  <p class="text-gray-500 text-[10px]">{{ item.group.schedule_type_display }} • {{ item.group.lesson_start_time|time:"H:i" }}</p>
                 </div>
+                <span class="text-[10px] text-gray-400 bg-gray-900 px-2 py-0.5 rounded border border-gray-700">{{ item.students_count }} talaba</span>
               </div>
-              {% empty %}
-                <p class="text-gray-500 text-sm">Guruhda talabalar yo'q.</p>
-              {% endfor %}
+              <div class="flex space-x-2">
+                <a href="{% url 'attendance:list' item.group.id %}" class="flex-1 bg-gray-800 text-gray-300 py-1.5 rounded-lg text-[9px] font-bold uppercase text-center hover:bg-gray-700">Tarix</a>
+                <a href="{% url 'exams:list' item.group.id %}" class="flex-1 bg-gray-800 text-gray-300 py-1.5 rounded-lg text-[9px] font-bold uppercase text-center hover:bg-gray-700">Imtihon</a>
+                <a href="{% url 'homework:list' item.group.id %}" class="flex-1 bg-gray-800 text-gray-300 py-1.5 rounded-lg text-[9px] font-bold uppercase text-center hover:bg-gray-700">Vazifa</a>
+              </div>
             </div>
-            
-            <button type="submit" class="w-full bg-transparent border border-gray-600 text-white rounded-xl py-3 mt-6 hover:bg-gray-800 transition font-medium">
-              Saqlash
-            </button>
-          </form>
-          {% else %}
-           <p class="text-gray-500 text-sm">Faol guruh topilmadi.</p>
-          {% endif %}
+            {% endfor %}
+          </div>
         </div>
 
       </div>
@@ -218,10 +207,10 @@
     </main>
   </div>
 
-  <!-- Scroll arrow at bottom as seen in image -->
-  <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-    <div class="w-10 h-10 rounded-full border border-gray-700 bg-transparent flex items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-800 transition">
-      <i class="fa-solid fa-arrow-down"></i>
+  <!-- Scroll arrow at bottom -->
+  <div class="fixed bottom-6 right-6">
+    <div class="w-12 h-12 rounded-full border border-gray-700 bg-[#252830] shadow-2xl flex items-center justify-center text-mint cursor-pointer hover:bg-gray-800 transition">
+      <i class="fa-solid fa-comment-dots text-xl"></i>
     </div>
   </div>
 

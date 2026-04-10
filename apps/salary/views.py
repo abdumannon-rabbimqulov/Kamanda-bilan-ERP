@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from apps.accounts.decorators import role_required
 from .models import Salary
@@ -7,12 +8,18 @@ from apps.courses.models import Course, Group, Enrollment
 from datetime import datetime
 from decimal import Decimal
 
-@role_required('admin')
+@login_required
 def salary_list(request):
     from django.db.models import Sum
     from datetime import datetime
     
+    user = request.user
     salaries = Salary.objects.all().order_by('-month')
+    
+    # Filter by user if not admin
+    if user.role != 'admin':
+        salaries = salaries.filter(user=user)
+        
     month_filter = request.GET.get('month')
     
     if month_filter and len(month_filter) == 7 and '-' in month_filter:
@@ -25,46 +32,46 @@ def salary_list(request):
     else:
         latest_month = salaries.first().month if salaries.exists() else None
     
-    # Calculate stats exactly for what gets displayed
-    from apps.payments.models import Payment
-    
-    # Global Stats
-    gross_total = Payment.objects.filter(status='success').exclude(method='salary_transfer').aggregate(total=Sum('amount'))['total'] or 0
-    total_salaries_paid = Salary.objects.filter(is_paid=True).aggregate(total=Sum('total_amount'))['total'] or 0
-    center_balance = gross_total - total_salaries_paid
-    
-    # Monthly Stats (for the current month filter)
-    if latest_month:
-        month_start = latest_month.replace(day=1)
-        # Revenue from student payments in this month
-        monthly_revenue = Payment.objects.filter(
-            status='success', 
-            paid_at__year=latest_month.year, 
-            paid_at__month=latest_month.month
-        ).exclude(method='salary_transfer').aggregate(total=Sum('amount'))['total'] or 0
-        
-        # Expenses from salaries PAID in this month (regardless of which month the salary is for)
-        monthly_expense = Salary.objects.filter(
-            is_paid=True, 
-            paid_at__year=latest_month.year, 
-            paid_at__month=latest_month.month
-        ).aggregate(total=Sum('total_amount'))['total'] or 0
-        
-        monthly_profit = monthly_revenue - monthly_expense
-    else:
-        monthly_revenue = monthly_expense = monthly_profit = 0
-
-    return render(request, 'salary/list.html', {
+    context = {
         'salaries': salaries,
-        'gross_total': gross_total,
-        'total_paid': total_salaries_paid,
-        'center_balance': center_balance,
         'latest_month': latest_month,
         'filtered_month': month_filter,
-        'monthly_revenue': monthly_revenue,
-        'monthly_expense': monthly_expense,
-        'monthly_profit': monthly_profit,
-    })
+    }
+
+    # Admin-only stats
+    if user.role == 'admin':
+        from apps.payments.models import Payment
+        gross_total = Payment.objects.filter(status='success').exclude(method='salary_transfer').aggregate(total=Sum('amount'))['total'] or 0
+        total_salaries_paid = Salary.objects.filter(is_paid=True).aggregate(total=Sum('total_amount'))['total'] or 0
+        center_balance = gross_total - total_salaries_paid
+        
+        if latest_month:
+            monthly_revenue = Payment.objects.filter(
+                status='success', 
+                paid_at__year=latest_month.year, 
+                paid_at__month=latest_month.month
+            ).exclude(method='salary_transfer').aggregate(total=Sum('amount'))['total'] or 0
+            
+            monthly_expense = Salary.objects.filter(
+                is_paid=True, 
+                paid_at__year=latest_month.year, 
+                paid_at__month=latest_month.month
+            ).aggregate(total=Sum('total_amount'))['total'] or 0
+            
+            monthly_profit = monthly_revenue - monthly_expense
+        else:
+            monthly_revenue = monthly_expense = monthly_profit = 0
+
+        context.update({
+            'gross_total': gross_total,
+            'total_paid': total_salaries_paid,
+            'center_balance': center_balance,
+            'monthly_revenue': monthly_revenue,
+            'monthly_expense': monthly_expense,
+            'monthly_profit': monthly_profit,
+        })
+
+    return render(request, 'salary/list.html', context)
 
 @role_required('admin')
 def calculate_monthly_salary(request):

@@ -65,17 +65,21 @@ def student_dashboard(request):
 @login_required
 @role_required('teacher')
 def teacher_dashboard(request):
-    from apps.courses.models import Group, Enrollment
+    from apps.courses.models import Group, Enrollment, Lesson
     from apps.salary.models import Salary
     from apps.attendance.models import Attendance
     from django.utils import timezone
     
+    today = timezone.now().date()
     groups = Group.objects.filter(teacher=request.user)
+    
+    # Bugungi darslar
+    today_lessons = Lesson.objects.filter(group__in=groups, date=today).select_related('group').order_by('group__lesson_start_time')
+    
     total_students = Enrollment.objects.filter(group__in=groups, status='approved').values('student').distinct().count()
     
     latest_salary = Salary.objects.filter(user=request.user).order_by('-month').first()
     salary_amount = latest_salary.total_amount if latest_salary else 0
-
     
     total_att = Attendance.objects.filter(group__in=groups).count()
     presents = Attendance.objects.filter(group__in=groups, status='present').count()
@@ -87,33 +91,16 @@ def teacher_dashboard(request):
             'group': g,
             'students_count': Enrollment.objects.filter(group=g, status='approved').count(),
             'lessons_count': Lesson.objects.filter(group=g).count(),
-            'is_new': g.start_date >= timezone.now().date()
+            'is_new': g.start_date >= today
         })
         
-    active_group = groups.first()
-    active_group_students = [e.student for e in Enrollment.objects.filter(group=active_group, status='approved')] if active_group else []
-    
-    if request.method == 'POST' and active_group:
-        for st in active_group_students:
-            status = request.POST.get(f'attendance_{st.id}', 'present')
-            Attendance.objects.update_or_create(
-                student=st, 
-                group=active_group, 
-                date=timezone.now().date(), 
-                defaults={'status': status, 'marked_by': request.user}
-            )
-        from django.contrib import messages
-        messages.success(request, f"{active_group.name} guruhi uchun bugungi davomat saqlandi!")
-        return redirect('dashboard:teacher')
-
     context = {
         'total_students': total_students,
         'groups_count': groups.count(),
         'salary_amount': salary_amount,
         'avg_attendance': avg_attendance,
         'groups_with_stats': groups_with_stats,
-        'active_group': active_group,
-        'active_group_students': active_group_students
+        'today_lessons': today_lessons,
     }
     return render(request, 'dashboard/teacher.html', context)
 
@@ -175,6 +162,34 @@ def admin_dashboard(request):
                 messages.success(request, f"Yangi foydalanuvchi ({role}) qo'shildi!")
                 return redirect('dashboard:admin')
                 
+        # Handle Group Creation
+        elif 'create_group' in request.POST:
+            name = request.POST.get('name')
+            course_id = request.POST.get('course_id')
+            teacher_id = request.POST.get('teacher_id')
+            assistant_id = request.POST.get('assistant_id')
+            start_date = request.POST.get('start_date')
+            end_date = request.POST.get('end_date')
+            schedule_type = request.POST.get('schedule_type', '3_days')
+            start_time = request.POST.get('lesson_start_time', '10:00')
+            
+            try:
+                from apps.courses.models import Course
+                course = Course.objects.get(id=course_id)
+                teacher = User.objects.get(id=teacher_id)
+                assistant = User.objects.get(id=assistant_id) if assistant_id else None
+                
+                Group.objects.create(
+                    name=name, course=course, teacher=teacher, assistant=assistant,
+                    start_date=start_date, end_date=end_date,
+                    schedule_type=schedule_type, lesson_start_time=start_time
+                )
+                messages.success(request, f"'{name}' guruhi muvaffaqiyatli ochildi va darslar avtomatik yaratildi!")
+                return redirect('dashboard:admin')
+            except Exception as e:
+                messages.error(request, f"Xatolik: {str(e)}")
+                return redirect('dashboard:admin')
+
         # Handle Enrollment Approval
         elif 'enrollment_action' in request.POST:
             action = request.POST.get('enrollment_action')
@@ -198,6 +213,7 @@ def admin_dashboard(request):
     # Financial Stats (Consistent with centers balance)
     from apps.payments.models import Payment
     from apps.salary.models import Salary
+    from apps.courses.models import Course # Ensure course is available for context if needed
     
     gross_total = Payment.objects.filter(status='success').exclude(method='salary_transfer').aggregate(total=Sum('amount'))['total'] or 0
     total_paid = Salary.objects.filter(is_paid=True).aggregate(total=Sum('total_amount'))['total'] or 0
@@ -209,12 +225,18 @@ def admin_dashboard(request):
     
     # Expose users as well if needed in a modal
     users = User.objects.exclude(id=request.user.id).order_by('-date_joined')
+    teachers_only = User.objects.filter(role='teacher', is_active=True)
+    assistants_only = User.objects.filter(role='assistant', is_active=True)
+    all_courses = Course.objects.filter(is_active=True)
     
     # Expose all groups for the 'Guruhlar' tab
     groups_list = Group.objects.all().select_related('course', 'teacher', 'assistant').order_by('-start_date')
     
     context = {
         'users': users,
+        'teachers_only': teachers_only,
+        'assistants_only': assistants_only,
+        'all_courses': all_courses,
         'groups_list': groups_list,
         'total_students': total_students,
         'total_revenue': gross_total,

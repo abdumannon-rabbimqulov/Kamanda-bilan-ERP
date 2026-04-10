@@ -14,6 +14,7 @@ class Course(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Group(models.Model):
+    SCHEDULE_TYPES = [('3_days','Haftada 3 kun'),('5_days','Haftada 5 kun'),('daily','Har kuni')]
     name = models.CharField(max_length=100)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='groups_taught')
@@ -21,6 +22,8 @@ class Group(models.Model):
     max_students = models.IntegerField(default=20)
     start_date = models.DateField()
     end_date = models.DateField()
+    schedule_type = models.CharField(max_length=10, choices=SCHEDULE_TYPES, default='3_days')
+    lesson_start_time = models.TimeField(default="10:00")
     is_active = models.BooleanField(default=True)
     teacher_percent = models.IntegerField(default=40)
     assistant_percent = models.IntegerField(default=15)
@@ -56,8 +59,10 @@ class Lesson(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    lesson_type = models.CharField(max_length=10, choices=TYPES)
+    lesson_type = models.CharField(max_length=10, choices=TYPES, default='text')
     file = models.FileField(upload_to='lessons/', blank=True, null=True)
     content = models.TextField(blank=True)
+    date = models.DateField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
     order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
