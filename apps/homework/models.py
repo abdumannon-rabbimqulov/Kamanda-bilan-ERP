@@ -6,7 +6,9 @@ class Homework(models.Model):
     STATUS = [('submitted','Submitted'),('checked','Checked'),('returned','Returned')]
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='homeworks')
-    file = models.FileField(upload_to='homeworks/')
+    file = models.FileField(upload_to='homeworks/', null=True, blank=True)
+    github_link = models.URLField(null=True, blank=True)
+    comment = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
     grade = models.IntegerField(null=True, blank=True)
     feedback = models.TextField(blank=True)

@@ -80,24 +80,76 @@
 
     <!-- Homework Section -->
     {% if request.user.role == 'student' %}
-    <div class="bg-mint/5 p-8 rounded-3xl border border-mint/10 shadow-lg mb-10">
-      <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-        <i class="fa-solid fa-cloud-arrow-up text-mint"></i> Uy vazifasini topshirish
-      </h2>
+    <div class="bg-[#252830] p-8 rounded-3xl border border-gray-700 shadow-2xl mb-10 overflow-hidden relative">
+      <div class="absolute -right-10 -top-10 w-40 h-40 bg-mint/5 rounded-full blur-3xl"></div>
       
-      <form action="{% url 'homework:submit' lesson.id %}" method="POST" enctype="multipart/form-data" class="space-y-4">
-        {% csrf_token %}
-        <div class="relative group">
-          <input type="file" name="file" required id="hwFile" class="hidden">
-          <label for="hwFile" class="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-700 rounded-2xl cursor-pointer hover:border-mint hover:bg-mint/5 transition group">
-            <i class="fa-solid fa-file-zipper text-4xl text-gray-600 mb-3 group-hover:text-mint group-hover:bounce"></i>
-            <span class="text-gray-400 group-hover:text-gray-200 font-medium" id="fileName">Faylni tanlang (ZIP, PDF, JPG)</span>
-          </label>
+      <div class="relative">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-cloud-arrow-up text-mint"></i> Uy vazifasini topshirish
+            </h2>
+            {% if user_homework %}
+              <div class="flex items-center gap-2">
+                {% if user_homework.status == 'checked' %}
+                  <span class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-500/20 uppercase tracking-widest">Baholangan: {{ user_homework.grade }}</span>
+                {% else %}
+                  <span class="bg-yellow-500/10 text-yellow-500 text-[10px] font-bold px-3 py-1 rounded-full border border-yellow-500/20 uppercase tracking-widest">Kutilmoqda</span>
+                {% endif %}
+              </div>
+            {% endif %}
         </div>
-        <button type="submit" class="w-full bg-mint text-green-900 font-black py-4 rounded-xl shadow-xl hover:bg-[#00cc88] transition transform active:scale-95">
-          VAZIFANI YUBORISH
-        </button>
-      </form>
+        
+        {% if user_homework and user_homework.status == 'checked' %}
+          <div class="bg-blue-500/5 border border-blue-500/20 p-6 rounded-2xl mb-8">
+            <h4 class="text-blue-400 text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-comment-dots"></i> Ustoz fikri
+            </h4>
+            <p class="text-gray-300 text-sm leading-relaxed">{{ user_homework.feedback|default:"Izoh qoldirilmagan" }}</p>
+          </div>
+        {% endif %}
+
+        <form action="{% url 'homework:submit' lesson.id %}" method="POST" enctype="multipart/form-data" class="space-y-6">
+          {% csrf_token %}
+          
+          <!-- File Upload -->
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Fayl yuklash (.py, rasm, video)</label>
+            <div class="relative group">
+              <input type="file" name="file" id="hwFile" class="hidden" accept=".py,.jpg,.jpeg,.png,.mp4,.zip,.rar">
+              <label for="hwFile" class="w-full flex items-center gap-4 p-4 border border-gray-700 rounded-2xl cursor-pointer hover:border-mint hover:bg-mint/5 transition group bg-[#1a1c23]">
+                <div class="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center text-gray-500 group-hover:text-mint transition">
+                  <i class="fa-solid fa-file-code"></i>
+                </div>
+                <span class="text-gray-400 group-hover:text-gray-200 text-sm font-medium truncate" id="fileName">
+                  {% if user_homework.file %} {{ user_homework.file.name|cut:"homeworks/" }} {% else %} Faylni tanlang... {% endif %}
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- GitHub Link -->
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">GitHub Link (ixtiyoriy)</label>
+            <div class="relative">
+              <i class="fa-brands fa-github absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+              <input type="url" name="github_link" value="{{ user_homework.github_link|default:'' }}" placeholder="https://github.com/username/repo" 
+                     class="w-full bg-[#1a1c23] border border-gray-700 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-mint transition">
+            </div>
+          </div>
+
+          <!-- Comment -->
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Qo'shimcha izoh</label>
+            <textarea name="comment" rows="3" placeholder="Vazifa haqida tushuntirish yozishingiz mumkun..." 
+                      class="w-full bg-[#1a1c23] border border-gray-700 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-mint transition resize-none">{{ user_homework.comment|default:'' }}</textarea>
+          </div>
+
+          <button type="submit" class="w-full bg-mint text-green-900 font-black py-4 rounded-xl shadow-xl hover:bg-[#00cc88] transition transform active:scale-95 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-paper-plane"></i>
+            {% if user_homework %} QAYTA YUBORISH {% else %} VAZIFANI TOPSHIRISH {% endif %}
+          </button>
+        </form>
+      </div>
     </div>
     <script>
       document.getElementById('hwFile').addEventListener('change', function(e) {

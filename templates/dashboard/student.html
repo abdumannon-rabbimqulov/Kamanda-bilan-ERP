@@ -27,12 +27,12 @@
     </div>
     
     <div class="flex items-center space-x-6 mt-4 md:mt-0 font-medium text-sm">
-      <a href="#" class="text-mint border-b-2 border-mint pb-4 -mb-[18px]">Dashboard</a>
-      <a href="#" class="text-gray-400 hover:text-gray-200">Kurslarim</a>
-      <a href="#" class="text-gray-400 hover:text-gray-200">Darslar</a>
-      <a href="#" class="text-gray-400 hover:text-gray-200">Uy vazifalari</a>
-      <a href="#" class="text-gray-400 hover:text-gray-200">Natijalar</a>
-      <a href="#" class="text-gray-400 hover:text-gray-200">To'lovlar</a>
+      <a href="{% url 'dashboard:student' %}" class="text-mint border-b-2 border-mint pb-4 -mb-[18px]">Dashboard</a>
+      <a href="{% url 'courses:list' %}" class="text-gray-400 hover:text-gray-200">Kurslarim</a>
+      <a href="{% if active_enrollment %}{% url 'courses:lesson_list' active_enrollment.group.id %}{% else %}#{% endif %}" class="text-gray-400 hover:text-gray-200">Darslar</a>
+      <a href="{% if active_enrollment %}{% url 'homework:list' active_enrollment.group.id %}{% else %}#{% endif %}" class="text-gray-400 hover:text-gray-200">Uy vazifalari</a>
+      <a href="{% if active_enrollment %}{% url 'exams:list' active_enrollment.group.id %}{% else %}#{% endif %}" class="text-gray-400 hover:text-gray-200">Natijalar</a>
+      <a href="{% url 'payments:dashboard' %}" class="text-gray-400 hover:text-gray-200">To'lovlar</a>
     </div>
 
     <!-- User Profile right -->
@@ -52,11 +52,11 @@
     <aside class="w-64 shrink-0 border-r border-gray-700 pr-4 mr-6 hidden lg:block">
       <span class="text-gray-500 text-xs font-bold tracking-wider mb-4 block uppercase px-2">Student Dashboard</span>
       <nav class="space-y-1">
-        <a href="/dashboard/" class="flex items-center space-x-3 bg-mint-soft px-4 py-3 rounded-lg font-medium text-green-900 border border-green-200 mb-2 shadow-sm transition">
+        <a href="{% url 'dashboard:student' %}" class="flex items-center space-x-3 bg-mint-soft px-4 py-3 rounded-lg font-medium text-green-900 border border-green-200 mb-2 shadow-sm transition">
           <i class="fa-solid fa-shapes opacity-80"></i>
           <span>Dashboard</span>
         </a>
-        <a href="/" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+        <a href="{% url 'courses:list' %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
           <i class="fa-solid fa-book-open"></i>
           <span>Kurslar</span>
         </a>

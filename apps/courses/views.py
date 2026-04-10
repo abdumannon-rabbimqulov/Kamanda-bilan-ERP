@@ -4,12 +4,37 @@ from apps.accounts.decorators import role_required
 from .models import Course, Group, Enrollment, Lesson
 
 def course_list(request):
-    courses = Course.objects.filter(is_active=True)
-    return render(request, 'courses/course_list.html', {'courses': courses})
+    user = request.user
+    all_courses = Course.objects.filter(is_active=True)
+    
+    if user.is_authenticated and user.role == 'student':
+        my_enrollments = Enrollment.objects.filter(student=user, status='approved').select_related('group__course')
+        enrolled_ids = my_enrollments.values_list('group__course_id', flat=True)
+        other_courses = all_courses.exclude(id__in=enrolled_ids)
+    else:
+        my_enrollments = None
+        other_courses = None
+
+    return render(request, 'courses/course_list.html', {
+        'my_enrollments': my_enrollments,
+        'other_courses': other_courses,
+        'courses': all_courses
+    })
 
 def course_detail(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    return render(request, 'courses/course_detail.html', {'course': course})
+    is_enrolled = False
+    enrollment = None
+    
+    if request.user.is_authenticated and request.user.role == 'student':
+        enrollment = Enrollment.objects.filter(student=request.user, group__course=course, status='approved').select_related('group').first()
+        is_enrolled = enrollment is not None
+        
+    return render(request, 'courses/course_detail.html', {
+        'course': course,
+        'is_enrolled': is_enrolled,
+        'enrollment': enrollment
+    })
 
 def enroll_course(request, course_id):
     if request.method == 'POST':
@@ -51,7 +76,10 @@ from datetime import datetime, timedelta
 
 def lesson_detail(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
-    return render(request, 'courses/lesson_detail.html', {'lesson': lesson})
+    user_homework = None
+    if request.user.is_authenticated and request.user.role == 'student':
+        user_homework = Homework.objects.filter(student=request.user, lesson=lesson).first()
+    return render(request, 'courses/lesson_detail.html', {'lesson': lesson, 'user_homework': user_homework})
 
 @role_required('teacher', 'admin', 'assistant')
 def start_lesson(request, lesson_id):

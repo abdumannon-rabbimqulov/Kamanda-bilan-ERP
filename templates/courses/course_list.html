@@ -1,16 +1,92 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1 class="text-3xl font-bold mb-6">Barcha Kurslar</h1>
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    {% for course in courses %}
-    <div class="bg-white rounded shadow hover:shadow-md transition">
-        <div class="p-6">
-            <h2 class="text-xl font-bold mb-2">{{ course.title }}</h2>
-            <p class="text-gray-600 text-sm mb-4 truncate">{{ course.description }}</p>
-            <p class="text-lg font-semibold text-indigo-600 mb-4">{{ course.price }} UZS</p>
-            <a href="{% url 'courses:detail' course.id %}" class="block text-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 rounded">Batafsil</a>
+<div class="mb-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-2xl bg-[#00e699]/10 flex items-center justify-center text-[#00e699]">
+                <i class="fa-solid fa-graduation-cap text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-white tracking-tight">Kurslar</h1>
+                <p class="text-gray-400 text-sm">O'zingizga mos kursni tanlang va bilim olishni boshlang</p>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'dashboard:student' %}" class="bg-gray-800 border border-gray-700 text-gray-300 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-700 hover:text-white transition-all flex items-center shadow-lg">
+                <i class="fa-solid fa-arrow-left mr-2"></i>Dashboardga qaytish
+            </a>
         </div>
     </div>
-    {% endfor %}
+
+    {% if my_enrollments %}
+    <section class="mb-12">
+        <h2 class="text-xl font-bold text-white mb-6 flex items-center">
+            <span class="w-2 h-6 bg-[#00e699] rounded-full mr-3"></span>
+            Mening Kurslarim
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for e in my_enrollments %}
+            <a href="{% url 'courses:detail' e.group.course.id %}" class="bg-[#252830] rounded-2xl border border-gray-700 p-6 group hover:border-[#00e699]/50 transition-all duration-300 shadow-xl relative overflow-hidden block">
+                <div class="absolute -right-4 -top-4 w-20 h-20 bg-[#00e699]/5 rounded-full"></div>
+                
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-xl font-bold text-white group-hover:text-[#00e699] transition-colors">{{ e.group.course.title }}</h3>
+                    <span class="bg-[#00e699]/10 text-[#00e699] text-[10px] font-bold px-2 py-1 rounded border border-[#00e699]/20 uppercase">Faol</span>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i class="fa-regular fa-calendar-check text-[#00e699] w-5"></i>
+                        <span>{{ e.group.get_schedule_type_display }}</span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i class="fa-regular fa-clock text-[#00e699] w-5"></i>
+                        <span>{{ e.group.lesson_start_time|time:"H:i" }} - {{ e.group.lesson_end_time|time:"H:i" }}</span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i class="fa-solid fa-user-tie text-[#00e699] w-5"></i>
+                        <span>{{ e.group.teacher.get_full_name|default:e.group.teacher.username }}</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section>
+        <h2 class="text-xl font-bold text-white mb-6 flex items-center">
+            <span class="w-2 h-6 bg-blue-500 rounded-full mr-3"></span>
+            {% if my_enrollments %}Boshqa Kurslar{% else %}Barcha Kurslar{% endif %}
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for course in other_courses|default:courses %}
+            <a href="{% url 'courses:detail' course.id %}" class="bg-[#252830] rounded-2xl border border-gray-700 p-6 group hover:border-blue-500/50 transition-all duration-300 shadow-lg relative opacity-90 hover:opacity-100 block">
+                <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 rounded-full"></div>
+                
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">{{ course.title }}</h3>
+                    <div class="text-right">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Narxi</p>
+                        <p class="text-sm font-bold text-white">{{ course.price|floatformat:"0" }} UZS</p>
+                    </div>
+                </div>
+
+                <p class="text-sm text-gray-400 mb-6 line-clamp-3 leading-relaxed">{{ course.description }}</p>
+                
+                <div class="flex items-center justify-between pt-4 border-t border-gray-800">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-500 uppercase">O'quvchilar</span>
+                        <span class="text-sm text-white font-bold">{{ course.students_count }} talaba</span>
+                    </div>
+                    <div class="flex flex-col text-right">
+                        <span class="text-[10px] text-gray-500 uppercase">Muvaffaqiyat</span>
+                        <span class="text-sm text-yellow-400 font-bold">{{ course.success_rate }}%</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
 </div>
 {% endblock %}
