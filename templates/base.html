@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>LMS Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800">
+  <nav class="bg-indigo-600 text-white p-4 shadow-md flex justify-between items-center">
+    <a href="/" class="text-xl font-bold">LMS Platform</a>
+    <div>
+      {% if user.is_authenticated %}
+        <span class="mr-4">{{ user.email }} ({{ user.role }})</span>
+        <a href="{% url 'auth:logout' %}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Chiqish</a>
+      {% else %}
+        <a href="{% url 'auth:login' %}" class="px-4 py-2 hover:underline">Tizimga kirish</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <div class="container mx-auto p-4 max-w-6xl mt-4">
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

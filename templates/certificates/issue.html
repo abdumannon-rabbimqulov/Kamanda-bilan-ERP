@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Sertifikat Berish - LMS Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { background-color: #1a1c23; color: #e2e8f0; font-family: Inter, sans-serif; }
+      .card-bg { background-color: #252830; }
+      .bg-mint { background-color: #00e699; }
+      .text-mint { color: #00e699; }
+      
+      /* Select styling for dark theme */
+      select {
+        background-color: #1a1c23 !important;
+        color: white !important;
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2300e699%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem top 50%;
+        background-size: 0.65rem auto;
+        appearance: none;
+      }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="min-h-screen flex flex-col p-6">
+
+    <!-- Top Navigation Mini -->
+    <nav class="shrink-0 flex items-center justify-between mb-10 max-w-4xl mx-auto w-full">
+        <div class="flex items-center space-x-2">
+            <span class="text-2xl font-bold"><span class="text-mint">LMS</span> <span class="text-white">Admin</span></span>
+        </div>
+        <a href="{% url 'dashboard:admin' %}" class="text-gray-400 hover:text-white transition flex items-center font-medium bg-[#252830] px-4 py-2 rounded-xl border border-gray-700 shadow-sm">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Orqaga qaytish
+        </a>
+    </nav>
+
+    <!-- Main Form Container -->
+    <main class="flex-1 flex flex-col items-center">
+        
+        <div class="card-bg p-8 md:p-12 w-full max-w-2xl rounded-3xl border border-gray-700 shadow-2xl relative overflow-hidden">
+            <!-- Decorative badge -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-mint opacity-5 rounded-bl-full pointer-events-none"></div>
+            <i class="fa-solid fa-award absolute top-8 right-8 text-mint opacity-20 text-5xl pointer-events-none"></i>
+
+            <h1 class="text-3xl font-bold mb-2 text-white">Sertifikat Berish</h1>
+            <p class="text-gray-400 mb-8 text-sm">O'quvchini va kursni tanlang, tizim avtomatik tarzda PDF va QR kodli maxsus sertifikat yaratib beradi.</p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-6">
+                    <label class="block text-gray-300 text-sm font-medium mb-2">O'quvchini tanlang</label>
+                    <div class="relative">
+                        <select name="student_id" required class="w-full border border-gray-600 rounded-xl px-4 py-3.5 focus:outline-none focus:border-mint transition shadow-inner">
+                            <option value="" disabled selected>-- Ro'yxatdan o'quvchini tanlang --</option>
+                            {% for st in students %}
+                            <option value="{{ st.id }}">{{ st.get_full_name|default:st.username }} ({{ st.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-10">
+                    <label class="block text-gray-300 text-sm font-medium mb-2">Kursni tanlang</label>
+                    <div class="relative">
+                        <select name="course_id" required class="w-full border border-gray-600 rounded-xl px-4 py-3.5 focus:outline-none focus:border-mint transition shadow-inner">
+                            <option value="" disabled selected>-- Baholanayotgan kursni tanlang --</option>
+                            {% for cr in courses %}
+                            <option value="{{ cr.id }}">{{ cr.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-mint text-green-900 font-bold py-4 rounded-xl hover:bg-[#00cc88] transition shadow-md flex justify-center items-center">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2 text-green-900"></i> Sertifikat Yaratish (PDF + QR)
+                </button>
+            </form>
+        </div>
+        
+    </main>
+
+</body>
+</html>

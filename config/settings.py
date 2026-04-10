@@ -1,36 +1,46 @@
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / '.env')
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-xttfo1u$*^hl!j6-5w5(n9@m4_n$*mf+%q%@73bp78gi!)ripa'
+SECRET_KEY = 'django-insecure-some-secret-key-for-lms-project'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['*']
 
 # Application definition
-
 INSTALLED_APPS = [
-    'jazzmin',
+    'daphne', # Use daphne or channels for ASGI
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'Teacher',
-    'Student',
-    'Admin',
-
+    'channels',
+    
+    # Custom Apps
+    'apps.accounts',
+    'apps.courses',
+    'apps.homework',
+    'apps.attendance',
+    'apps.exams',
+    'apps.chat',
+    'apps.salary',
+    'apps.certificates',
+    'apps.notifications',
+    'apps.complaints',
+    'apps.payments',
+    'django.contrib.humanize',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -60,11 +70,21 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
+ASGI_APPLICATION = 'config.asgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
+# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'lms_db',
+#         'USER': 'postgres',
+#         'PASSWORD': '',
+#         'HOST': '127.0.0.1',
+#         'PORT': '5432',
+#     }
+# }
+# If you don't have postgres ready yet, comment the DATABASES above and uncomment below:
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -72,51 +92,45 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'uz-uz'
+TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
-
 USE_TZ = True
 
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
-STATIC_URL = 'static/'
+AUTH_USER_MODEL = 'accounts.User'
 
-AUTH_USER_MODEL = 'Admin.CustomUser'
+LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
 
-LOGIN_URL = '/login/'
-
+# Email configuration for OTP
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "rabbimqulovabdumannon588@gmail.com"
-EMAIL_HOST_PASSWORD = "frsg qybc gbyr qnto"
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

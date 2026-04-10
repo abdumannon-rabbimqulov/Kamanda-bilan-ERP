@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Tizimga Kirish - LMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { background-color: #1a1c23; color: #e2e8f0; font-family: Inter, sans-serif; }
+      .bg-login-left { background-color: #0d5c46; } /* Dark Green/Teal */
+      .bg-login-right { background-color: #252830; }
+      .text-mint { color: #34d399; }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <span class="absolute top-6 left-8 text-gray-500 text-[10px] font-bold tracking-widest uppercase mb-4 pl-1">Kirish Sahifasi</span>
+
+    <!-- Main Container -->
+    <div class="flex flex-col md:flex-row w-full max-w-4xl rounded-[2rem] overflow-hidden shadow-2xl">
+        
+        <!-- Left Side (Green) -->
+        <div class="bg-login-left p-10 md:p-14 w-full md:w-[45%] flex flex-col justify-between">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white mb-3">LMS Platform</h1>
+                <p class="text-green-100/80 mb-10 leading-relaxed text-[15px]">O'quv markazi uchun zamonaviy boshqaruv tizimi</p>
+            </div>
+            
+            <div class="space-y-6 mt-10">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-green-100 shrink-0">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <p class="text-green-50 text-sm font-medium leading-tight">Barcha ishtirokchilar yagona tizimda mujassam</p>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-green-100 shrink-0">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <p class="text-green-50 text-sm font-medium leading-tight">Ma'lumotlaringiz xavfsiz himoyalangan</p>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-green-100 shrink-0">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <p class="text-green-50 text-sm font-medium leading-tight">Real-vaqtda kuzatish va turli progresslar</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side (Form) -->
+        <div class="bg-login-right p-10 md:p-14 w-full md:w-[55%] flex flex-col justify-center">
+            
+            <h2 class="text-3xl font-bold text-white mb-2">Xush kelibsiz</h2>
+            <p class="text-gray-400 mb-8">Hisobingizga kiring</p>
+            
+            {% if error %}
+            <div class="bg-red-900/40 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl mb-6 text-sm flex items-center shadow-inner">
+                <i class="fa-solid fa-circle-exclamation mr-3 text-red-400"></i> {{ error }}
+            </div>
+            {% endif %}
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-5">
+                    <label class="block text-gray-300 text-sm font-medium mb-2">Email manzil yoki Username</label>
+                    <input type="text" name="login" required placeholder="abdumannon@example.com" class="w-full bg-[#1a1c23] border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:outline-none focus:border-mint transition shadow-inner">
+                </div>
+                
+                <div class="mb-5">
+                    <label class="block text-gray-300 text-sm font-medium mb-2">Parol</label>
+                    <input type="password" name="password" required placeholder="••••••••••••" class="w-full bg-[#1a1c23] border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:outline-none focus:border-mint transition shadow-inner font-mono text-lg tracking-widest">
+                </div>
+                
+                <div class="flex justify-end mb-8">
+                    <a href="#" class="text-mint text-sm font-medium hover:text-green-300 transition">Parolni unutdingizmi?</a>
+                </div>
+                
+                <button type="submit" class="w-full bg-transparent border border-gray-500 text-white font-bold py-3.5 rounded-xl hover:bg-gray-700 hover:border-gray-400 transition shadow-sm">
+                    Kirish
+                </button>
+            </form>
+            
+            <!-- Registration link explicitly removed as requested by user -->
+            
+        </div>
+        
+    </div>
+
+</body>
+</html>

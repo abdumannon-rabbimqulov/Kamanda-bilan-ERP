@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - LMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #1a1c23; color: #e2e8f0; font-family: Inter, sans-serif; }
+    .card-bg { background-color: #252830; }
+    .badge-bg { background-color: #1a1c23; }
+    .text-mint { color: #00e699; }
+    .bg-mint { background-color: #00e699; }
+    .bg-mint-soft { background-color: #e6fffa; color: #047857; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+    
+    #userModal { display: none; }
+    #userModal.show { display: flex; }
+    
+    /* Tab logic */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    /* Active Nav States */
+    .nav-btn.active { background-color: #e6fffa; color: #047857; border-color: #bbf7d0; }
+    .nav-btn.active i { opacity: 0.8 !important; }
+    
+    .nav-top.active { border-bottom-width: 2px; border-color: #00e699; color: #00e699; }
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <span class="text-gray-500 text-[10px] sm:text-xs font-bold tracking-widest pl-6 pt-3 uppercase opacity-60">Admin Panel</span>
+  
+  <!-- Top Navigation -->
+  <nav class="border-b border-gray-700 p-4 shrink-0 flex flex-col md:flex-row md:items-center justify-between mt-1">
+    <div class="flex items-center space-x-2">
+      <span class="text-2xl font-bold"><span class="text-mint">LMS</span> <span class="text-white">Admin</span></span>
+    </div>
+    
+    <!-- Search bar top right -->
+    <div class="hidden md:flex flex-1 justify-center items-center px-8">
+      <div style="position:relative;width:100%;max-width:420px;">
+        <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#4b5563;"></i>
+        <input type="text" id="globalSearch" placeholder="Foydalanuvchi yoki guruh qidiring..."
+          oninput="globalSearchFn(this.value)"
+          style="width:100%;background:#252830;border:1px solid #374151;color:#fff;padding:10px 16px 10px 42px;border-radius:10px;font-size:0.85rem;outline:none;box-sizing:border-box;"
+          onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+        <div id="globalSearchResults"
+          style="position:absolute;top:calc(100% + 6px);left:0;right:0;background:#1a1c23;border:1px solid #374151;border-radius:10px;z-index:500;display:none;max-height:280px;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,0.7);"></div>
+      </div>
+    </div>
+
+    <!-- Add user button + profile -->
+    <div class="hidden md:flex items-center gap-3">
+      <button onclick="document.getElementById('userModal').classList.add('show')" class="border border-gray-600 text-gray-200 hover:text-white hover:border-gray-400 px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer flex items-center shadow-sm">
+        + Foydalanuvchi qo'shish
+      </button>
+      <div class="flex items-center space-x-3 bg-transparent pr-2 rounded-full cursor-pointer">
+        <div class="bg-[#fef3c7] w-9 h-9 rounded-full flex items-center justify-center font-bold text-yellow-800 text-sm">
+          {{ user.first_name|first|default:user.username|first|upper }}{{ user.last_name|first|default:''|upper }}
+        </div>
+        <span class="text-gray-300 font-medium text-sm">{{ user.first_name|default:user.username }}</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Horizontal Tabs nav -->
+  <div class="border-b border-gray-700 px-6 -mt-[1px]">
+     <div class="flex items-center space-x-8 font-medium text-sm">
+      <button onclick="switchTab('dashboard')" class="nav-top text-gray-400 hover:text-gray-200 py-4 focus:outline-none" id="top-dashboard">Umumiy</button>
+      <button onclick="switchTab('users')" class="nav-top text-gray-400 hover:text-gray-200 py-4 focus:outline-none" id="top-users">Foydalanuvchilar</button>
+      <button onclick="switchTab('groups')" class="nav-top text-gray-400 hover:text-gray-200 py-4 focus:outline-none" id="top-groups">Guruhlar</button>
+      <a href="{% url 'payments:dashboard' %}" class="text-gray-400 hover:text-gray-200 py-4">To'lovlar</a>
+      <a href="{% url 'salary:list' %}" class="text-gray-400 hover:text-gray-200 py-4">Maoshlar</a>
+      <a href="{% url 'certificates:issue' %}" class="text-gray-400 hover:text-gray-200 py-4">Sertifikatlar</a>
+    </div>
+  </div>
+
+  <div class="flex flex-1 overflow-hidden mt-6 px-4">
+    <!-- Left Sidebar -->
+    <aside class="w-64 shrink-0 border-r border-gray-700 pr-4 mr-6 hidden lg:block">
+      <nav class="space-y-1">
+        <button onclick="switchTab('dashboard')" class="nav-btn w-full flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer focus:outline-none" id="nav-dashboard">
+          <i class="fa-solid fa-shapes"></i>
+          <span>Boshqaruv</span>
+        </button>
+        <button onclick="switchTab('users')" class="nav-btn w-full flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer focus:outline-none" id="nav-users">
+          <i class="fa-regular fa-user"></i>
+          <span>Foydalanuvchilar</span>
+        </button>
+        <button onclick="switchTab('groups')" class="nav-btn w-full flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer focus:outline-none" id="nav-groups">
+          <i class="fa-solid fa-book"></i>
+          <span>Guruhlar</span>
+        </button>
+        <a href="{% url 'payments:dashboard' %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+          <i class="fa-solid fa-dollar-sign px-1"></i>
+          <span>To'lovlar</span>
+        </a>
+        <a href="{% url 'certificates:issue' %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+          <i class="fa-solid fa-award"></i>
+          <span>Sertifikatlar</span>
+        </a>
+        <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+          <i class="fa-regular fa-bell"></i>
+          <span>Xabarnomalar</span>
+        </a>
+        
+        <a href="{% url 'auth:logout' %}" class="flex items-center space-x-3 text-red-400 hover:text-red-300 hover:bg-[#252830] px-4 py-3 rounded-lg font-medium mt-12 transition">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Chiqish</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Right Content -->
+    <main class="flex-1 overflow-y-auto pb-10">
+      
+      <!-- User messages -->
+      {% if messages %}
+        <div class="mb-4">
+          {% for msg in messages %}
+             <div class="bg-gray-800 border border-gray-700 text-white px-4 py-3 rounded-xl mb-2 text-sm shadow">
+                <i class="fa-solid fa-circle-info mr-2 text-mint"></i> {{ msg }}
+             </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- TAB: DASHBOARD -->
+      <div id="tab-dashboard" class="tab-content">
+          <!-- Stats Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
+              <span class="text-gray-300 text-sm font-medium mb-2">Jami studentlar</span>
+              <span class="text-4xl font-bold text-white mb-1">{{ total_students }}</span>
+              <span class="text-mint text-sm font-medium mt-auto">+8 bu oy</span>
+            </div>
+            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
+              <span class="text-gray-300 text-sm font-medium mb-2">Jami daromad</span>
+              <span class="text-4xl font-bold text-white mb-1">{{ total_revenue|default:'0' }}</span>
+              <span class="text-mint text-sm font-medium mt-auto">UZS bu oy</span>
+            </div>
+            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
+              <span class="text-gray-300 text-sm font-medium mb-2">Faol guruhlar</span>
+              <span class="text-4xl font-bold text-white mb-1">{{ active_groups }}</span>
+              <span class="text-mint text-sm font-medium mt-auto">2 ta yangi</span>
+            </div>
+            <div class="card-bg p-5 rounded-2xl border border-gray-700 shadow-sm flex flex-col">
+              <span class="text-gray-300 text-sm font-medium mb-2">Kutilayotgan</span>
+              <span class="text-4xl font-bold text-white mb-1">{{ pending_count }}</span>
+              <span class="text-mint text-sm font-medium mt-auto">Tasdiqlash kerak</span>
+            </div>
+          </div>
+    
+          <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <!-- So'nggi ro'yxatdan o'tishlar (2 cols) -->
+            <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg xl:col-span-2">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="font-bold text-lg text-white tracking-wide">So'nggi ro'yxatdan o'tishlar</h3>
+                <a href="#" class="text-mint text-sm font-medium hover:underline">Barchasini ko'rish</a>
+              </div>
+              
+              <div class="space-y-4">
+                {% for enr in recent_enrollments %}
+                <div class="badge-bg p-4 rounded-xl border border-gray-700 flex flex-col sm:flex-row justify-between sm:items-center transition hover:border-gray-500">
+                  <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center font-bold text-gray-800 text-xs">
+                      {{ enr.student.first_name|first|default:enr.student.username|first|upper }}{{ enr.student.last_name|first|default:''|upper }}
+                    </div>
+                    <div>
+                      <h4 class="text-white font-bold text-[15px]">{{ enr.student.get_full_name|default:enr.student.username }}</h4>
+                      <p class="text-gray-400 text-xs mt-0.5">{{ enr.group.name }} • {{ enr.enrolled_at|timesince }} oldin</p>
+                    </div>
+                  </div>
+                  
+                  <form method="POST" class="flex space-x-2">
+                     {% csrf_token %}
+                     <input type="hidden" name="enrollment_action" value="">
+                     <input type="hidden" name="enrollment_id" value="{{ enr.id }}">
+                     <button type="submit" onclick="this.form.enrollment_action.value='approve'" class="bg-mint-soft text-[#047857] px-4 py-2 rounded-lg text-sm font-bold border border-green-200 transition hover:bg-green-100">
+                        Tasdiqlash
+                     </button>
+                     <button type="submit" onclick="this.form.enrollment_action.value='reject'" class="bg-[#252830] text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-bold border border-gray-600 transition hover:bg-gray-700">
+                        Rad etish
+                     </button>
+                  </form>
+                </div>
+                {% empty %}
+                 <div class="text-gray-500 py-4 text-center">Hozircha yangi arizalar yo'q.</div>
+                {% endfor %}
+              </div>
+            </div>
+            
+            <!-- Tezkor amallar (1 col) -->
+            <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg">
+              <h3 class="font-bold text-lg mb-6 text-white tracking-wide">Tezkor amallar</h3>
+              <div class="space-y-3">
+                 <a href="#" class="block w-full text-left bg-transparent border border-gray-600 hover:border-gray-400 text-gray-200 hover:text-white px-4 py-3 rounded-xl transition flex items-center space-x-3 text-sm font-medium">
+                   <i class="fa-regular fa-bell opacity-70 w-5 text-center"></i> <span>Xabarnoma yuborish</span>
+                 </a>
+                 <a href="{% url 'certificates:issue' %}" class="block w-full text-left bg-transparent border border-gray-600 hover:border-gray-400 text-gray-200 hover:text-white px-4 py-3 rounded-xl transition flex items-center space-x-3 text-sm font-medium">
+                   <i class="fa-solid fa-award opacity-70 w-5 text-center"></i> <span>Sertifikat berish</span>
+                 </a>
+                 <a href="{% url 'salary:list' %}" class="block w-full text-left bg-transparent border border-gray-600 hover:border-gray-400 text-gray-200 hover:text-white px-4 py-3 rounded-xl transition flex items-center space-x-3 text-sm font-medium">
+                   <i class="fa-solid fa-download opacity-70 w-5 text-center"></i> <span>Maosh eksport</span>
+                 </a>
+                 <a href="#" class="block w-full text-left bg-transparent border border-gray-600 hover:border-gray-400 text-gray-200 hover:text-white px-4 py-3 rounded-xl transition flex items-center space-x-3 text-sm font-medium">
+                   <i class="fa-solid fa-dollar-sign opacity-70 w-5 text-center"></i> <span>To'lov tekshirish</span>
+                 </a>
+              </div>
+            </div>
+          </div>
+      </div>
+
+      <!-- TAB: USERS -->
+      <div id="tab-users" class="tab-content">
+         <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg">
+            <!-- Header: Search + Add -->
+            <div class="flex justify-between items-center mb-5 flex-wrap gap-3">
+               <h3 class="font-bold text-lg text-white tracking-wide">Foydalanuvchilar Ro'yxati</h3>
+               <div class="flex items-center gap-3 flex-wrap">
+                 <!-- Users search -->
+                 <div style="position:relative;">
+                   <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#4b5563;font-size:0.8rem;"></i>
+                   <input type="text" id="usersSearch" placeholder="Qidirish..." oninput="filterUsersTable(this.value)"
+                     style="background:#1a1c23;border:1px solid #374151;color:#fff;padding:8px 14px 8px 34px;border-radius:8px;font-size:0.82rem;outline:none;width:200px;"
+                     onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+                 </div>
+                 <button onclick="document.getElementById('userModal').classList.add('show')" class="bg-mint-soft text-[#047857] hover:bg-green-100 border border-green-200 px-4 py-2 rounded-lg text-sm font-bold transition">
+                   + Yangi qo'shish
+                 </button>
+               </div>
+            </div>
+
+            <div class="overflow-x-auto">
+               <table class="w-full text-left border-collapse" id="usersTable">
+                  <thead>
+                     <tr class="border-b border-gray-600 text-gray-400 text-sm">
+                        <th class="pb-3 px-4 font-medium uppercase tracking-wider">Foydalanuvchi</th>
+                        <th class="pb-3 px-4 font-medium uppercase tracking-wider">Rol</th>
+                        <th class="pb-3 px-4 font-medium uppercase tracking-wider text-center">Holat</th>
+                        <th class="pb-3 px-4 font-medium uppercase tracking-wider text-right">Qo'shildi</th>
+                        <th class="pb-3 px-4 font-medium uppercase tracking-wider text-center">Amallar</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     {% for u in users %}
+                     <tr class="border-b border-gray-700/50 hover:bg-[#1a1c23]/70 transition group user-row"
+                         data-name="{{ u.get_full_name|default:u.username|lower }}" data-email="{{ u.email|lower }}" data-role="{{ u.role }}">
+                        <td class="py-4 px-4 cursor-pointer" onclick="showPreview('/dashboard/preview/user/{{ u.id }}/', '{{ u.get_full_name|default:u.username }}')">
+                           <div class="flex items-center space-x-3">
+                              <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center font-bold text-white text-xs shrink-0">
+                                 {{ u.first_name|first|default:u.username|first|upper }}
+                              </div>
+                              <div>
+                                 <p class="text-white font-medium text-sm group-hover:text-mint transition">{{ u.get_full_name|default:u.email }}</p>
+                                 <p class="text-gray-500 text-xs mt-0.5">{{ u.email }}</p>
+                              </div>
+                           </div>
+                        </td>
+                        <td class="py-4 px-4">
+                           {% if u.role == 'student' %} <span class="bg-[#e0f2fe] text-blue-800 text-xs px-2.5 py-1 rounded border border-blue-200">Talaba</span>
+                           {% elif u.role == 'teacher' %} <span class="bg-[#fef3c7] text-yellow-800 text-xs px-2.5 py-1 rounded border border-yellow-200">Ustoz</span>
+                           {% elif u.role == 'assistant' %} <span class="bg-[#f3e8ff] text-purple-800 text-xs px-2.5 py-1 rounded border border-purple-200">Yordamchi</span>
+                           {% else %} <span class="bg-gray-200 text-gray-800 text-xs px-2.5 py-1 rounded border border-gray-300">Admin</span>
+                           {% endif %}
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                           {% if u.is_active %}<span class="text-mint"><i class="fa-solid fa-check"></i> Faol</span>{% else %}<span class="text-red-400">Bloklangan</span>{% endif %}
+                        </td>
+                        <td class="py-4 px-4 text-right text-sm text-gray-400">{{ u.date_joined|date:"d.m.Y" }}</td>
+                        <td class="py-4 px-4 text-center">
+                           <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                             <!-- Edit -->
+                             <button onclick="openEditUser(event, {{ u.id }}, '{{ u.first_name|escapejs }}', '{{ u.last_name|escapejs }}', '{{ u.email|escapejs }}', '{{ u.phone|escapejs }}', '{{ u.role }}', {{ u.is_active|yesno:'1,0' }})"
+                               style="background:#252830;border:1px solid #374151;color:#9ca3af;padding:5px 10px;border-radius:7px;font-size:0.75rem;cursor:pointer;" title="Tahrirlash">
+                               <i class="fa-solid fa-pen-to-square"></i>
+                             </button>
+                             <!-- Delete -->
+                             {% if u.role != 'admin' %}
+                             <form method="POST" action="{% url 'dashboard:delete_user' u.id %}" onsubmit="return confirm('{{ u.get_full_name|default:u.username|escapejs }} ni o\'chirasizmi?')" style="display:inline;">
+                               {% csrf_token %}
+                               <button type="submit" style="background:#450a0a;border:1px solid #7f1d1d;color:#f87171;padding:5px 10px;border-radius:7px;font-size:0.75rem;cursor:pointer;" title="O'chirish">
+                                 <i class="fa-solid fa-trash"></i>
+                               </button>
+                             </form>
+                             {% endif %}
+                           </div>
+                        </td>
+                     </tr>
+                     {% empty %}
+                     <tr>
+                        <td colspan="5" class="text-center text-gray-500 py-6">Foydalanuvchilar topilmadi.</td>
+                     </tr>
+                     {% endfor %}
+                  </tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+
+      <!-- TAB: GROUPS -->
+      <div id="tab-groups" class="tab-content">
+         <div class="card-bg p-6 rounded-2xl border border-gray-700 shadow-lg mb-6">
+            <div class="flex justify-between items-center mb-6">
+               <h3 class="font-bold text-lg text-white tracking-wide">Faol Va Kutilayotgan Guruhlar</h3>
+               <button class="bg-[#252830] text-gray-300 hover:text-white border border-gray-600 px-4 py-2 rounded-lg text-sm font-bold transition">
+                 + Yangi guruh ochish
+               </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+               <table class="w-full text-left border-collapse">
+                  <thead>
+                     <tr class="border-b border-gray-600 text-gray-400 text-sm">
+                        <th class="pb-3 px-4 font-medium uppercase tracking-wider">Guruh / Kurs</th>
+                        <th class="pb-3 px-4 font-medium uppercase tracking-wider">O'qituvchi & Yordamchi</th>
+                        <th class="pb-3 px-4 font-medium uppercase tracking-wider text-center">Boshlanish Sana</th>
+                        <th class="pb-3 px-4 font-medium uppercase tracking-wider text-center">Holat</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     {% for g in groups_list %}
+                     <tr class="border-b border-gray-700/50 hover:bg-[#1a1c23]/70 transition cursor-pointer group" onclick="showPreview('/dashboard/preview/group/{{ g.id }}/', '{{ g.name }} — {{ g.course.title }}')">
+                        <td class="py-4 px-4">
+                           <div class="flex items-center space-x-3">
+                              <div class="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center font-bold text-white text-sm shrink-0 border border-gray-600">
+                                 <i class="fa-solid fa-users-rectangle"></i>
+                              </div>
+                              <div>
+                                 <p class="text-white font-bold text-sm group-hover:text-mint transition">{{ g.name }}</p>
+                                 <p class="text-mint text-[11px] font-bold mt-0.5 tracking-wider">{{ g.course.title|upper }}</p>
+                              </div>
+                           </div>
+                        </td>
+                        <td class="py-4 px-4">
+                           <p class="text-gray-200 text-sm font-medium"><i class="fa-solid fa-chalkboard-user mr-1 text-yellow-500 opacity-70"></i> {{ g.teacher.get_full_name|default:g.teacher.username }}</p>
+                           {% if g.assistant %}
+                           <p class="text-gray-500 text-xs mt-1"><i class="fa-solid fa-user-tie mr-1 opacity-50"></i> {{ g.assistant.get_full_name|default:g.assistant.username }}</p>
+                           {% else %}
+                           <p class="text-gray-600 text-[10px] mt-1 italic">Yordamchi biriktirilmagan</p>
+                           {% endif %}
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                           <span class="text-gray-300 bg-[#1a1c23] px-3 py-1 rounded text-sm shadow-inner">{{ g.start_date|date:"d.m.Y" }}</span>
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                           {% if g.is_active %}
+                           <span class="bg-mint-soft text-[#047857] text-xs px-2.5 py-1 rounded border border-green-200 tracking-wide font-bold">FAOL</span>
+                           {% else %}
+                           <span class="bg-red-900/40 text-red-300 text-xs px-2.5 py-1 rounded border border-red-500/50 tracking-wide font-bold">YOPILGAN</span>
+                           {% endif %}
+                        </td>
+                     </tr>
+                     {% empty %}
+                     <tr>
+                        <td colspan="4" class="text-center text-gray-500 py-6">Guruhlar topilmadi.</td>
+                     </tr>
+                     {% endfor %}
+                  </tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- User Creation Modal -->
+  <div id="userModal" class="fixed inset-0 bg-black bg-opacity-70 z-50 items-center justify-center p-4">
+      <div class="bg-[#252830] rounded-2xl w-full max-w-md p-6 border border-gray-700 shadow-2xl relative">
+          <button onclick="document.getElementById('userModal').classList.remove('show')" class="absolute top-4 right-4 text-gray-400 hover:text-white border border-transparent hover:border-gray-500 rounded p-1">
+              <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+          
+          <h2 class="text-xl font-bold text-white mb-6">Yangi Foydalanuvchi Qo'shish</h2>
+          
+          <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="create_user" value="1">
+              
+              <div class="mb-4">
+                  <label class="block text-gray-300 text-sm font-medium mb-2">Pochta / Username (Email)</label>
+                  <input type="email" name="email" required placeholder="nom@maktab.uz" class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-mint transition">
+              </div>
+              
+              <div class="mb-4">
+                  <label class="block text-gray-300 text-sm font-medium mb-2">Parol (Vaqtinchalik)</label>
+                  <input type="password" name="password" required placeholder="12345" class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-mint transition">
+              </div>
+              
+              <div class="mb-6">
+                  <label class="block text-gray-300 text-sm font-medium mb-2">Rol (Lavozimi)</label>
+                  <select name="role" class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-mint transition">
+                      <option value="student">O'quvchi (Student)</option>
+                      <option value="teacher">O'qituvchi (Teacher)</option>
+                      <option value="assistant">Yordamchi (Assistant)</option>
+                  </select>
+              </div>
+              
+              <button type="submit" class="w-full bg-mint text-green-900 font-bold py-3 rounded-lg hover:bg-[#00cc88] transition">Yaratish</button>
+          </form>
+      </div>
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      // Hide all contents
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      // Remove active states from all sidebar buttons
+      document.querySelectorAll('.nav-btn').forEach(el => {
+          el.classList.remove('active', 'bg-[#e6fffa]', 'border', 'border-green-200');
+          el.querySelector('i').classList.remove('opacity-80');
+          el.classList.add('hover:bg-[#252830]', 'text-gray-400');
+          el.classList.remove('text-green-900');
+      });
+      // Remove active states from all top nav links
+      document.querySelectorAll('.nav-top').forEach(el => {
+          el.classList.remove('active', 'border-b-2', 'border-mint', 'text-mint');
+          el.classList.add('text-gray-400');
+      });
+      
+      // Show Target Tab
+      document.getElementById('tab-' + tabId).classList.add('active');
+      
+      // Set active Sidebar Nav
+      const sbtn = document.getElementById('nav-' + tabId);
+      if (sbtn) {
+          sbtn.classList.add('active', 'bg-[#e6fffa]', 'border', 'border-green-200', 'text-green-900');
+          sbtn.classList.remove('hover:bg-[#252830]', 'text-gray-400');
+          sbtn.querySelector('i').classList.add('opacity-80');
+      }
+      
+      // Set active Top Nav
+      const tbtn = document.getElementById('top-' + tabId);
+      if (tbtn) {
+          tbtn.classList.add('active', 'border-b-2', 'border-mint', 'text-mint');
+          tbtn.classList.remove('text-gray-400');
+      }
+    }
+    
+    // Initialize Dashboard Tab
+    switchTab('dashboard');
+
+    // ---- Universal Preview Modal ----
+    function showPreview(url, title) {
+      const modal = document.getElementById('previewModal');
+      const titleEl = document.getElementById('previewTitle');
+      const bodyEl = document.getElementById('previewBody');
+      
+      // Show modal with spinner
+      titleEl.textContent = title;
+      bodyEl.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 0;gap:12px;">
+          <svg width="38" height="38" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg" stroke="#00e699">
+            <g fill="none" fill-rule="evenodd"><g transform="translate(1 1)" stroke-width="2">
+              <circle stroke-opacity=".3" cx="18" cy="18" r="18"/>
+              <path d="M36 18c0-9.94-8.06-18-18-18"><animateTransform attributeName="transform" type="rotate" from="0 18 18" to="360 18 18" dur="0.8s" repeatCount="indefinite"/></path>
+            </g></g>
+          </svg>
+          <p style="color:#6b7280;font-size:0.82rem;">Yuklanmoqda...</p>
+        </div>`;
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      
+      // Fetch content
+      fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(r => r.text())
+        .then(html => { bodyEl.innerHTML = html; })
+        .catch(err => { bodyEl.innerHTML = `<p style="color:#f87171;text-align:center;padding:20px">Xatolik yuz berdi: ${err}</p>`; });
+    }
+
+    function closePreview() {
+      document.getElementById('previewModal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    
+    // Close on backdrop click
+    document.getElementById('previewModal').addEventListener('click', function(e) {
+      if (e.target === this) closePreview();
+    });
+  </script>
+
+  <!-- Universal Detail Preview Modal -->
+  <div id="previewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+    <div style="background:#1a1c23;border:1px solid #374151;border-radius:20px;width:100%;max-width:640px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 25px 50px rgba(0,0,0,0.8);">
+      <!-- Modal Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #374151;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#00e699;"></div>
+          <h3 id="previewTitle" style="color:#fff;font-weight:700;font-size:1rem;margin:0;">Ma'lumot</h3>
+        </div>
+        <button onclick="closePreview()" style="background:transparent;border:1px solid #374151;color:#9ca3af;border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;font-size:1rem;" onmouseover="this.style.borderColor='#6b7280';this.style.color='#fff'" onmouseout="this.style.borderColor='#374151';this.style.color='#9ca3af'">
+          ✕
+        </button>
+      </div>
+      <!-- Modal Body (scrollable) -->
+      <div id="previewBody" style="padding:24px;overflow-y:auto;flex:1;"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       EDIT USER MODAL
+       ═══════════════════════════════════ -->
+  <div id="editUserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:10000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px);">
+    <div style="background:#1a1c23;border:1px solid #374151;border-radius:20px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;box-shadow:0 30px 70px rgba(0,0,0,0.9);">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #374151;position:sticky;top:0;background:#1a1c23;z-index:1;">
+        <h3 style="color:#fff;font-weight:700;margin:0;font-size:0.95rem;display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-user-pen" style="color:#00e699;"></i> Foydalanuvchini Tahrirlash
+        </h3>
+        <button onclick="closeEditModal()" style="background:transparent;border:1px solid #374151;color:#9ca3af;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:0.9rem;">✕</button>
+      </div>
+      <div style="padding:24px;">
+        <form id="editUserForm" method="POST" action="">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div>
+              <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Ism</label>
+              <input type="text" name="first_name" id="eu-first_name" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+            </div>
+            <div>
+              <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Familiya</label>
+              <input type="text" name="last_name" id="eu-last_name" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+            </div>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Email</label>
+            <input type="email" name="email" id="eu-email" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+          </div>
+          <div style="margin-bottom:14px;">
+            <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Telefon</label>
+            <input type="text" name="phone" id="eu-phone" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div>
+              <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Rol</label>
+              <select name="role" id="eu-role" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;">
+                <option value="student">Talaba</option>
+                <option value="teacher">Ustoz</option>
+                <option value="assistant">Yordamchi</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Holat</label>
+              <select name="is_active" id="eu-is_active" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;">
+                <option value="1">✓ Faol</option>
+                <option value="0">✗ Bloklangan</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Yangi Parol <span style="color:#4b5563;font-weight:400;text-transform:none;font-size:0.65rem;">(bo'sh qoldirsa o'zgarmaydi)</span></label>
+            <input type="password" name="password" placeholder="••••••••" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+          </div>
+          <button type="submit" style="width:100%;background:#00e699;color:#064e3b;border:none;padding:13px;border-radius:12px;font-weight:800;font-size:0.9rem;cursor:pointer;" onmouseover="this.style.background='#00cc88'" onmouseout="this.style.background='#00e699'">
+            ✅ Saqlash
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── Edit User Modal ───
+    function openEditUser(event, userId, firstName, lastName, email, phone, role, isActive) {
+      event.stopPropagation();
+      document.getElementById('editUserForm').action = '/dashboard/user/' + userId + '/update/';
+      document.getElementById('eu-first_name').value = firstName;
+      document.getElementById('eu-last_name').value  = lastName;
+      document.getElementById('eu-email').value = email;
+      document.getElementById('eu-phone').value = phone;
+      document.getElementById('eu-role').value  = role;
+      document.getElementById('eu-is_active').value = String(isActive);
+      document.getElementById('editUserModal').style.cssText = 'display:flex !important;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:10000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px);';
+    }
+    function closeEditModal() {
+      document.getElementById('editUserModal').style.cssText = 'display:none !important;';
+    }
+    document.getElementById('editUserModal').addEventListener('click', function(e) {
+      if (e.target === this) closeEditModal();
+    });
+
+    // ─── Users table filter ───
+    function filterUsersTable(q) {
+      q = q.trim().toLowerCase();
+      document.querySelectorAll('.user-row').forEach(function(row) {
+        var name  = row.dataset.name  || '';
+        var email = row.dataset.email || '';
+        var role  = row.dataset.role  || '';
+        row.style.display = (!q || name.includes(q) || email.includes(q) || role.includes(q)) ? '' : 'none';
+      });
+    }
+
+    // ─── Global search (nav bar) ───
+    var allUsersData = [
+      {% for u in users %}{"id":{{ u.id }},"name":"{{ u.get_full_name|default:u.username|escapejs }}","email":"{{ u.email|escapejs }}","role":"{{ u.role }}","type":"user"}{% if not forloop.last %},{% endif %}{% endfor %}
+    ];
+    var allGroupsData = [
+      {% for g in groups_list %}{"id":{{ g.id }},"name":"{{ g.name|escapejs }} — {{ g.course.title|escapejs }}","type":"group"}{% if not forloop.last %},{% endif %}{% endfor %}
+    ];
+
+    function globalSearchFn(q) {
+      var resultsEl = document.getElementById('globalSearchResults');
+      q = q.trim().toLowerCase();
+      if (!q) { resultsEl.style.display = 'none'; return; }
+
+      var results = [];
+      allUsersData.forEach(function(u) {
+        if (u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) results.push(u);
+      });
+      allGroupsData.forEach(function(g) {
+        if (g.name.toLowerCase().includes(q)) results.push(g);
+      });
+
+      if (!results.length) {
+        resultsEl.innerHTML = '<p style="color:#4b5563;text-align:center;padding:14px;font-size:0.82rem;">Hech narsa topilmadi.</p>';
+        resultsEl.style.display = 'block';
+        return;
+      }
+
+      resultsEl.innerHTML = results.slice(0, 8).map(function(r) {
+        var isUser = r.type === 'user';
+        var icon = isUser ? '👤' : '📚';
+        var sub  = isUser ? r.email : 'Guruh';
+        var onclick = isUser
+          ? "showPreview('/dashboard/preview/user/" + r.id + "/', '" + r.name + "'); switchTab('users'); document.getElementById('globalSearch').value=''; document.getElementById('globalSearchResults').style.display='none';"
+          : "showPreview('/dashboard/preview/group/" + r.id + "/', '" + r.name + "'); switchTab('groups'); document.getElementById('globalSearch').value=''; document.getElementById('globalSearchResults').style.display='none';";
+        return '<div onclick="' + onclick + '" style="padding:10px 16px;cursor:pointer;border-bottom:1px solid #374151;display:flex;align-items:center;gap:10px;" onmouseover="this.style.background=\'#252830\'" onmouseout="this.style.background=\'transparent\'">' +
+          '<span style="font-size:1rem;">' + icon + '</span>' +
+          '<div><p style="color:#e2e8f0;font-size:0.85rem;font-weight:600;margin:0;">' + r.name + '</p><p style="color:#4b5563;font-size:0.72rem;margin:0;">' + sub + '</p></div>' +
+          '</div>';
+      }).join('');
+      resultsEl.style.display = 'block';
+    }
+
+    // Hide global search on outside click
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#globalSearch') && !e.target.closest('#globalSearchResults')) {
+        document.getElementById('globalSearchResults').style.display = 'none';
+      }
+    });
+  </script>
+
+</body>
+</html>

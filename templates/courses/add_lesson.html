@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Yang dars qo'shish ({{ group.name }})</h1>
+{% if error %}<div class="bg-red-100 text-red-700 p-3 mb-4">{{ error }}</div>{% endif %}
+<form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded shadow max-w-2xl">
+    {% csrf_token %}
+    <div class="mb-4">
+        <label class="block font-medium mb-1">Mavzu</label>
+        <input type="text" name="title" required class="w-full border rounded p-2 focus:ring">
+    </div>
+    <div class="mb-4">
+        <label class="block font-medium mb-1">Dars turi</label>
+        <select name="lesson_type" class="w-full border rounded p-2 focus:ring">
+            <option value="video">Video</option>
+            <option value="pdf">PDF</option>
+            <option value="text">Matn</option>
+        </select>
+    </div>
+    <div class="mb-4">
+        <label class="block font-medium mb-1">Fayl (Video yoki PDF)</label>
+        <input type="file" name="file" class="w-full border rounded p-2">
+    </div>
+    <div class="mb-4">
+        <label class="block font-medium mb-1">Matn (yoki qo'shimcha ma'lumot)</label>
+        <textarea name="content" rows="4" class="w-full border rounded p-2 focus:ring"></textarea>
+    </div>
+    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">Saqlash</button>
+</form>
+{% endblock %}

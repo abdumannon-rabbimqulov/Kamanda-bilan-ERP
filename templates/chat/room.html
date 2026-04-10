@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat - LMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { background-color: #1a1c23; color: #e2e8f0; font-family: Inter, sans-serif; overflow: hidden; }
+      .bg-mint { background-color: #00e699; }
+      .text-mint { color: #00e699; }
+      .bg-mint-soft { background-color: #e6fffa; color: #047857; }
+      .chat-bubble-me { background-color: #00e699; color: white; border-radius: 16px 16px 0 16px; }
+      .chat-bubble-other { background-color: #252830; color: #e2e8f0; border-radius: 16px 16px 16px 0; }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="h-screen flex flex-col">
+
+    <span class="text-gray-500 text-[10px] font-bold tracking-widest pl-6 pt-3 uppercase opacity-60">Chat tizimi (Websocket Real-Time)</span>
+    
+    <!-- Top Header -->
+    <header class="border-b border-gray-700 p-4 shrink-0 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+            <span class="text-2xl font-bold"><span class="text-mint">LMS</span> <span class="text-white">Chat</span></span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <div class="w-3 h-3 bg-mint rounded-full"></div>
+            <span class="text-gray-300 font-medium text-sm">Online</span>
+        </div>
+    </header>
+
+    <!-- Main Flex Row -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-80 shrink-0 border-r border-gray-700 flex flex-col overflow-y-auto pt-6 px-4 pb-4">
+            
+            <!-- Guruh Chatlari -->
+            <div class="mb-8">
+                <h3 class="text-gray-500 text-[11px] font-bold tracking-widest uppercase mb-4 px-2">Guruh chatlari</h3>
+                <div class="space-y-1">
+                    {% for g in groups %}
+                    <a href="{% url 'chat:room' g.id %}" class="block px-4 py-3 rounded-xl transition cursor-pointer {% if g.id|stringformat:'s' == room_name %}bg-mint-soft border border-green-200 shadow-sm{% else %}hover:bg-[#252830]{% endif %}">
+                        <h4 class="font-bold text-[15px] {% if g.id|stringformat:'s' == room_name %}text-[#047857]{% else %}text-white{% endif %}">{{ g.name }}</h4>
+                        <p class="text-xs truncate mt-0.5 {% if g.id|stringformat:'s' == room_name %}text-[#047857] opacity-80{% else %}text-gray-500{% endif %}">Dars masalalari muhokamasi...</p>
+                    </a>
+                    {% empty %}
+                    <p class="text-xs text-gray-500 px-2 leading-relaxed">Guruhlar mavjud emas.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- To'g'ridan to'g'ri -->
+            <div>
+                <h3 class="text-gray-500 text-[11px] font-bold tracking-widest uppercase mb-4 px-2">To'g'ridan-to'g'ri</h3>
+                <div class="space-y-2">
+                    {% for u in direct_users %}
+                    <a href="#" class="flex items-center space-x-3 px-2 py-2 rounded-xl hover:bg-[#252830] transition cursor-pointer">
+                        <div class="w-9 h-9 rounded-full bg-[#fef3c7] text-yellow-800 flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                            {{ u.first_name|first|default:u.username|first|upper }}{{ u.last_name|first|default:''|upper }}
+                        </div>
+                        <div class="overflow-hidden">
+                            <h4 class="font-bold text-white text-sm truncate">{{ u.get_full_name|default:u.username }}</h4>
+                            <p class="text-xs text-gray-400 capitalize truncate mt-0.5">{{ u.role }}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            
+             <a href="/" class="mt-auto block text-center text-gray-500 hover:text-white text-sm py-4 border-t border-gray-700 border-dashed">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Orqaga qaytish
+             </a>
+        </aside>
+
+        <!-- Right Chat Window -->
+        <main class="flex-1 flex flex-col bg-[#16171d]">
+            
+            <!-- Target User Header -->
+            <div class="border-b border-gray-700 p-4 shrink-0 flex items-center space-x-3 bg-[#1a1c23]">
+                <div class="w-2.5 h-2.5 bg-mint rounded-full"></div>
+                <h2 class="text-white font-bold text-lg">Xona: {{ room_name }} — Guruh chat</h2>
+                <span class="text-gray-400 text-sm ml-2">Asosiy a'zolar suhbati</span>
+            </div>
+            
+            <!-- Messages Log -->
+            <div id="chat-log" class="flex-1 overflow-y-auto p-6 space-y-6">
+                <!-- Javascript will populate messages here -->
+                
+                <!-- Mock init message just to make it look active before WS connects fully -->
+                <div class="my-4 text-center">
+                    <span class="text-xs text-gray-600 bg-[#252830] px-3 py-1 rounded-full border border-gray-700 shadow-sm">Bugun</span>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="p-4 shrink-0 bg-[#1a1c23] border-t border-gray-700 flex space-x-3 items-end pb-6">
+                <div class="flex-1 relative">
+                    <textarea id="chat-message-input" rows="1" class="w-full bg-[#252830] border border-gray-700 text-white rounded-xl focus:outline-none focus:border-mint py-3 px-4 resize-none shadow-inner" placeholder="Xabar yozing..."></textarea>
+                </div>
+                <button id="chat-message-submit" class="w-12 h-12 shrink-0 bg-transparent border border-gray-600 rounded-xl text-gray-300 hover:text-white hover:bg-gray-700 hover:border-gray-500 transition flex items-center justify-center cursor-pointer shadow-sm">
+                    <i class="fa-regular fa-paper-plane"></i>
+                </button>
+            </div>
+            
+        </main>
+    </div>
+
+    {{ room_name|json_script:"room-name" }}
+    {{ user.username|json_script:"user-username" }}
+    {{ user.first_name|first|default:user.username|first|upper|json_script:"user-avatar" }}
+    
+    <script>
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const currentUser = JSON.parse(document.getElementById('user-username').textContent);
+        const myAvatar = JSON.parse(document.getElementById('user-avatar').textContent);
+        const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + roomName + '/');
+
+        function formatTime() {
+            const date = new Date();
+            let hours = date.getHours();
+            let mins = date.getMinutes();
+            if(hours < 10) hours = '0' + hours;
+            if(mins < 10) mins = '0' + mins;
+            return hours + ':' + mins;
+        }
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const log = document.querySelector('#chat-log');
+            const timeStr = formatTime();
+            
+            const isMe = (data.sender === currentUser);
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex ${isMe ? 'justify-end' : 'items-end space-x-3'}`;
+            
+            let html = '';
+            
+            if (!isMe) {
+                const initial = data.sender.charAt(0).toUpperCase();
+                html += `
+                    <div class="w-9 h-9 rounded-full bg-[#e0f2fe] text-blue-800 flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border border-blue-200">
+                        ${initial}
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="max-w-[70%] lg:max-w-[60%] flex flex-col ${isMe ? 'items-end' : ''}">
+                    ${!isMe ? `<span class="text-xs text-gray-400 mb-1 ml-1">${data.sender}</span>` : ''}
+                    <div class="${isMe ? 'chat-bubble-me shadow-md' : 'chat-bubble-other shadow-md border border-gray-700'} px-5 py-3 text-[15px] leading-relaxed">
+                        ${data.message}
+                    </div>
+                    <span class="text-[10px] text-gray-500 mt-1 mx-1">${timeStr}</span>
+                </div>
+            `;
+            
+            wrapper.innerHTML = html;
+            log.appendChild(wrapper);
+            log.scrollTop = log.scrollHeight;
+        };
+
+        const inputDom = document.querySelector('#chat-message-input');
+        inputDom.focus();
+        inputDom.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault();
+                document.querySelector('#chat-message-submit').click(); 
+            }
+        });
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const val = inputDom.value.trim();
+            if (val) {
+                chatSocket.send(JSON.stringify({'message': val}));
+                inputDom.value = '';
+            }
+        };
+    </script>
+</body>
+</html>

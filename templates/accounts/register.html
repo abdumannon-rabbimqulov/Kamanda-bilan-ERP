@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 border rounded shadow-sm mt-10">
+    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Ro'yxatdan o'tish</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Email</label>
+            <input type="email" name="email" value="{{ data.email }}" class="w-full border rounded p-2 focus:outline-none focus:ring focus:ring-indigo-200">
+            {% if errors.email %}<p class="text-red-500 text-sm mt-1">{{ errors.email }}</p>{% endif %}
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Parol</label>
+            <input type="password" name="password" class="w-full border rounded p-2 focus:outline-none focus:ring focus:ring-indigo-200">
+            {% if errors.password %}<p class="text-red-500 text-sm mt-1">{{ errors.password }}</p>{% endif %}
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Parolni tasdiqlang</label>
+            <input type="password" name="confirm_password" class="w-full border rounded p-2 focus:outline-none focus:ring focus:ring-indigo-200">
+            {% if errors.confirm %}<p class="text-red-500 text-sm mt-1">{{ errors.confirm }}</p>{% endif %}
+        </div>
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-1">Rolingiz</label>
+            <select name="role" class="w-full border rounded p-2 focus:outline-none focus:ring focus:ring-indigo-200">
+                <option value="student" {% if data.role == 'student' %}selected{% endif %}>O'quvchi</option>
+                <option value="teacher" {% if data.role == 'teacher' %}selected{% endif %}>O'qituvchi</option>
+                <option value="assistant" {% if data.role == 'assistant' %}selected{% endif %}>Yordamchi</option>
+            </select>
+        </div>
+        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 rounded hover:bg-indigo-700">Tasdiqlash kodini yuborish</button>
+    </form>
+</div>
+{% endblock %}

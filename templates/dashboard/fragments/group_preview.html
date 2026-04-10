@@ -1,0 +1,167 @@
+{% load humanize %}
+<div style="font-family:Inter,sans-serif;background:#1a1c23;color:#e2e8f0;min-width:0;">
+
+
+  <!-- Header -->
+  <div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:20px;">
+    <div>
+      <h2 style="font-size:1.2rem;font-weight:800;color:#fff;margin:0 0 4px 0;">{{ group.name }}</h2>
+      <p style="color:#00e699;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:0;">{{ group.course.title }}</p>
+    </div>
+    {% if group.is_active %}
+    <span style="background:#d1fae5;color:#065f46;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:999px;border:1px solid #a7f3d0;flex-shrink:0;">FAOL</span>
+    {% else %}
+    <span style="background:#450a0a;color:#fca5a5;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:999px;flex-shrink:0;">YOPILGAN</span>
+    {% endif %}
+  </div>
+
+  <!-- Teacher & Assistant -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+    <div style="background:#252830;border:1px solid #374151;border-radius:11px;padding:13px;">
+      <p style="color:#fbbf24;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin:0 0 7px 0;"><i class="fa-solid fa-chalkboard-user" style="margin-right:4px;"></i>O'qituvchi</p>
+      <p style="color:#fff;font-weight:700;font-size:.88rem;margin:0 0 2px 0;">{{ group.teacher.get_full_name|default:group.teacher.username }}</p>
+      <p style="color:#6b7280;font-size:.72rem;margin:0;">{{ group.teacher.email }}</p>
+    </div>
+    <div style="background:#252830;border:1px solid #374151;border-radius:11px;padding:13px;">
+      <p style="color:#a78bfa;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin:0 0 7px 0;"><i class="fa-solid fa-user-tie" style="margin-right:4px;"></i>Yordamchi</p>
+      {% if group.assistant %}
+      <p style="color:#fff;font-weight:700;font-size:.88rem;margin:0 0 2px 0;">{{ group.assistant.get_full_name|default:group.assistant.username }}</p>
+      <p style="color:#6b7280;font-size:.72rem;margin:0;">{{ group.assistant.email }}</p>
+      {% else %}
+      <p style="color:#4b5563;font-style:italic;font-size:.82rem;margin:0;">Biriktirilmagan</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;">
+    <div style="background:#252830;border:1px solid #374151;border-radius:9px;padding:10px 14px;flex:1;min-width:110px;">
+      <p style="color:#9ca3af;font-size:.62rem;text-transform:uppercase;margin:0 0 4px 0;font-weight:700;">Kurs narxi</p>
+      <p style="color:#00e699;font-weight:800;font-size:.95rem;margin:0;">{{ group.course.price|floatformat:0 }} <span style="font-size:.62rem;color:#6b7280;">UZS</span></p>
+    </div>
+    <div style="background:#252830;border:1px solid #374151;border-radius:9px;padding:10px 14px;flex:1;min-width:100px;">
+      <p style="color:#9ca3af;font-size:.62rem;text-transform:uppercase;margin:0 0 4px 0;font-weight:700;">Boshlanish</p>
+      <p style="color:#e2e8f0;font-weight:700;font-size:.88rem;margin:0;">{{ group.start_date|date:"d.m.Y" }}</p>
+    </div>
+    <div style="background:#252830;border:1px solid #374151;border-radius:9px;padding:10px 14px;flex:1;min-width:100px;">
+      <p style="color:#9ca3af;font-size:.62rem;text-transform:uppercase;margin:0 0 4px 0;font-weight:700;">Tugash</p>
+      <p style="color:#e2e8f0;font-weight:700;font-size:.88rem;margin:0;">{{ group.end_date|date:"d.m.Y" }}</p>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div style="height:1px;background:#374151;margin-bottom:16px;"></div>
+
+  <!-- ══ FOIZ BOSHQARUVI ══ -->
+  <div style="background:#0f1f15;border:1px solid #064e3b;border-radius:12px;padding:16px;margin-bottom:18px;">
+    <p style="color:#6ee7b7;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px 0;"><i class="fa-solid fa-percent" style="margin-right:5px;"></i>Oylik Ulush Foizlarini Boshqarish</p>
+    {% with center_pct=100|add:group.teacher_percent|add:group.assistant_percent %}
+    <!-- show current -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+      <div style="background:#252830;border:1px solid #374151;border-radius:8px;padding:8px 14px;text-align:center;flex:1;min-width:80px;">
+        <p style="color:#fbbf24;font-weight:800;font-size:1.2rem;margin:0;">{{ group.teacher_percent }}%</p>
+        <p style="color:#6b7280;font-size:.62rem;font-weight:700;text-transform:uppercase;margin:0;">Ustoz</p>
+      </div>
+      <div style="background:#252830;border:1px solid #374151;border-radius:8px;padding:8px 14px;text-align:center;flex:1;min-width:80px;">
+        <p style="color:#a78bfa;font-weight:800;font-size:1.2rem;margin:0;">{{ group.assistant_percent }}%</p>
+        <p style="color:#6b7280;font-size:.62rem;font-weight:700;text-transform:uppercase;margin:0;">Yordamchi</p>
+      </div>
+      <div style="background:#252830;border:1px solid #374151;border-radius:8px;padding:8px 14px;text-align:center;flex:1;min-width:80px;">
+        <p id="center-pct-{{ group.id }}" style="color:#60a5fa;font-weight:800;font-size:1.2rem;margin:0;">{{ center_pct }}%</p>
+        <p style="color:#6b7280;font-size:.62rem;font-weight:700;text-transform:uppercase;margin:0;">Markaz</p>
+      </div>
+
+    </div>
+    {% endwith %}
+    <form method="POST" action="/dashboard/group/{{ group.id }}/update-percent/">
+      {% csrf_token %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div>
+          <label style="display:block;color:#9ca3af;font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700;">Ustoz foizi (%)</label>
+          <input type="number" name="teacher_percent" value="{{ group.teacher_percent }}" min="0" max="100"
+            id="tp-{{ group.id }}" oninput="recalcCenter({{ group.id }})"
+            style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:9px 12px;border-radius:8px;font-size:.9rem;outline:none;font-weight:700;"
+            onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+        </div>
+        <div>
+          <label style="display:block;color:#9ca3af;font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700;">Yordamchi foizi (%)</label>
+          <input type="number" name="assistant_percent" value="{{ group.assistant_percent }}" min="0" max="100"
+            id="ap-{{ group.id }}" oninput="recalcCenter({{ group.id }})"
+            style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:9px 12px;border-radius:8px;font-size:.9rem;outline:none;font-weight:700;"
+            onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+        </div>
+      </div>
+      <button type="submit"
+        style="width:100%;background:#065f46;border:1px solid #047857;color:#6ee7b7;padding:10px;border-radius:9px;font-weight:700;font-size:.85rem;cursor:pointer;"
+        onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#065f46'">
+        <i class="fa-solid fa-save" style="margin-right:6px;"></i> Foizlarni Saqlash
+      </button>
+    </form>
+    <script>
+    function recalcCenter(gid) {
+      var t = parseFloat(document.getElementById('tp-'+gid).value)||0;
+      var a = parseFloat(document.getElementById('ap-'+gid).value)||0;
+      var c = 100 - t - a;
+      document.getElementById('center-pct-'+gid).textContent = (c<0?0:c) + '%';
+      document.getElementById('center-pct-'+gid).style.color = c < 0 ? '#f87171' : '#60a5fa';
+    }
+    </script>
+  </div>
+
+  <!-- Students Table -->
+  <p style="color:#9ca3af;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px 0;">O'quvchilar ro'yxati ({{ students_data|length }} ta)</p>
+
+  {% if students_data %}
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:.82rem;">
+      <thead>
+        <tr style="border-bottom:1px solid #374151;">
+          <th style="color:#6b7280;font-weight:600;text-align:left;padding:6px 8px;font-size:.63rem;text-transform:uppercase;letter-spacing:.06em;">Talaba</th>
+          <th style="color:#6b7280;font-weight:600;text-align:center;padding:6px 8px;font-size:.63rem;text-transform:uppercase;">Holat</th>
+          <th style="color:#6b7280;font-weight:600;text-align:right;padding:6px 8px;font-size:.63rem;text-transform:uppercase;">To'landi</th>
+          <th style="color:#6b7280;font-weight:600;text-align:right;padding:6px 8px;font-size:.63rem;text-transform:uppercase;">Qarz</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students_data %}
+        <tr style="border-bottom:1px solid #1f2937;{% if s.is_debtor %}background:rgba(220,38,38,.04);{% endif %}">
+          <td style="padding:9px 8px;">
+            <div style="display:flex;align-items:center;gap:9px;">
+              <div style="width:30px;height:30px;border-radius:50%;background:#374151;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;color:#e2e8f0;flex-shrink:0;">
+                {{ s.student.first_name|first|default:s.student.email|first|upper }}
+              </div>
+              <div>
+                <p style="color:#e2e8f0;font-weight:600;margin:0;">{{ s.student.get_full_name|default:s.student.username }}</p>
+                <p style="color:#4b5563;font-size:.7rem;margin:0;">{{ s.student.email }}</p>
+              </div>
+            </div>
+          </td>
+          <td style="padding:9px 8px;text-align:center;">
+            {% if s.enrollment.status == 'approved' %}
+            <span style="background:#d1fae5;color:#065f46;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;">OK</span>
+            {% elif s.enrollment.status == 'pending' %}
+            <span style="background:#fef3c7;color:#92400e;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;">KUTILMOQDA</span>
+            {% else %}
+            <span style="background:#450a0a;color:#fca5a5;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;">RAD</span>
+            {% endif %}
+          </td>
+          <td style="padding:9px 8px;text-align:right;">
+            <span style="color:{% if s.is_debtor %}#f87171{% else %}#34d399{% endif %};font-weight:700;">{{ s.amount_paid|intcomma }}</span>
+          </td>
+          <td style="padding:9px 8px;text-align:right;">
+            {% if s.is_debtor %}
+            <span style="background:#450a0a;color:#f87171;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:6px;">-{{ s.debt|intcomma }}</span>
+            {% else %}
+            <span style="color:#34d399;font-size:.75rem;">✓</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p style="color:#4b5563;text-align:center;padding:20px 0;font-style:italic;">Bu guruhda hali o'quvchilar yo'q.</p>
+  {% endif %}
+
+</div>

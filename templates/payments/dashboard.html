@@ -1,0 +1,341 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>To'lovlar — LMS Admin</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a1c23;color:#e2e8f0;font-family:Inter,sans-serif;min-height:100vh;}
+.card{background:#252830;border:1px solid #374151;border-radius:14px;}
+a{text-decoration:none;}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#4a5568;border-radius:4px}
+.tab-btn{background:transparent;border:none;color:#9ca3af;padding:12px 20px;cursor:pointer;font-weight:600;font-size:.87rem;border-bottom:2px solid transparent;font-family:Inter,sans-serif;transition:all .2s}
+.tab-btn.active{border-color:#00e699;color:#00e699}
+.section{display:none}.section.active{display:block}
+input,select,button{font-family:Inter,sans-serif}
+.btn-green{background:#064e3b;border:1px solid #065f46;color:#6ee7b7;padding:8px 16px;border-radius:10px;font-weight:700;font-size:.82rem;cursor:pointer;}
+.btn-green:hover{background:#065f46}
+.stat-card{padding:20px;position:relative;overflow:hidden}
+.field-label{display:block;color:#9ca3af;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;font-weight:700}
+.field-input{width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:11px 14px;border-radius:9px;font-size:.9rem;outline:none}
+.field-input:focus{border-color:#00e699}
+/* MODAL */
+#payModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)}
+#payModal.open{display:flex}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav style="border-bottom:1px solid #374151;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{% url 'dashboard:admin' %}" style="color:#6b7280;font-size:.82rem;display:flex;align-items:center;gap:6px;border:1px solid #374151;padding:6px 12px;border-radius:8px;">
+      <i class="fa-solid fa-arrow-left"></i> Admin Panel
+    </a>
+    <div>
+      <span style="color:#fff;font-weight:800;font-size:1.1rem;"><span style="color:#00e699;">LMS</span> To'lovlar</span>
+      <p style="color:#6b7280;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;margin-top:1px;">Moliya Boshqaruv Tizimi</p>
+    </div>
+  </div>
+  <form method="POST" action="{% url 'payments:notify_debtors' %}" onsubmit="return confirm('Barcha qarzdorlarga bildirishnoma yuborilsinmi?')">
+    {% csrf_token %}
+    <button type="submit" style="background:#7f1d1d;border:1px solid #991b1b;color:#fca5a5;padding:8px 16px;border-radius:10px;font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:8px;">
+      <i class="fa-solid fa-bell"></i> Qarzdorlarga xabar ({{ debtors_count }} ta)
+    </button>
+  </form>
+</nav>
+
+<div style="max-width:1400px;margin:0 auto;padding:24px 16px;">
+
+  <!-- MESSAGES -->
+  {% if messages %}
+  <div style="margin-bottom:16px;">
+    {% for msg in messages %}
+    <div style="background:#064e3b;border:1px solid #065f46;color:#6ee7b7;padding:12px 18px;border-radius:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px;font-size:.88rem;font-weight:600;">
+      <i class="fa-solid fa-circle-check" style="color:#00e699;"></i> {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- STATS -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:24px;">
+    <div class="card stat-card" style="border-color:#065f46;">
+      <p style="color:#6b7280;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700;">Jami Yig'ildi</p>
+      <p style="color:#00e699;font-weight:800;font-size:1.5rem;">{{ total_collected|intcomma }}</p>
+      <p style="color:#374151;font-size:.68rem;margin-top:2px;">UZS</p>
+    </div>
+    <div class="card stat-card">
+      <p style="color:#6b7280;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700;">Kutilgan</p>
+      <p style="color:#e2e8f0;font-weight:800;font-size:1.5rem;">{{ total_expected|intcomma }}</p>
+      <p style="color:#374151;font-size:.68rem;margin-top:2px;">UZS</p>
+    </div>
+    <div class="card stat-card" style="border-color:#7f1d1d;">
+      <p style="color:#6b7280;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700;">Umumiy Qarz</p>
+      <p style="color:#f87171;font-weight:800;font-size:1.5rem;">{{ total_debt|intcomma }}</p>
+      <p style="color:#374151;font-size:.68rem;margin-top:2px;">UZS</p>
+    </div>
+    <div class="card stat-card">
+      <p style="color:#6b7280;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700;">Qarzdorlar</p>
+      <p style="color:#fb923c;font-weight:800;font-size:1.5rem;">{{ debtors_count }}</p>
+      <p style="color:#374151;font-size:.68rem;margin-top:2px;">talaba</p>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div style="border-bottom:1px solid #374151;margin-bottom:20px;display:flex;gap:0;">
+    <button class="tab-btn active" onclick="switchTab('students',this)"><i class="fa-solid fa-users" style="margin-right:6px;"></i>O'quvchi To'lovlari</button>
+    <button class="tab-btn" onclick="switchTab('salary',this)"><i class="fa-solid fa-money-bill-transfer" style="margin-right:6px;"></i>Oylik Maoshlar</button>
+  </div>
+
+  <!-- ── TAB: STUDENTS ── -->
+  <div id="section-students" class="section active">
+    <div class="card" style="padding:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+        <h3 style="color:#fff;font-weight:700;">O'quvchilar va To'lov Holati</h3>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div style="position:relative;">
+            <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#4b5563;font-size:.78rem;"></i>
+            <input type="text" placeholder="Ism yoki email orqali qidirish..." oninput="filterPayments(this.value)"
+              style="background:#1a1c23;border:1px solid #374151;color:#fff;padding:8px 14px 8px 34px;border-radius:8px;font-size:.82rem;outline:none;width:250px;"
+              onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+          </div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:.84rem;" id="paymentsTable">
+          <thead>
+            <tr style="border-bottom:1px solid #374151;color:#6b7280;">
+              <th style="text-align:left;padding:8px 12px;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;">Talaba</th>
+              <th style="text-align:left;padding:8px 12px;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;">Kurs / Guruh</th>
+              <th style="text-align:right;padding:8px 12px;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;">Kurs Narxi</th>
+              <th style="text-align:right;padding:8px 12px;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;">To'langan</th>
+              <th style="text-align:right;padding:8px 12px;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;">Qarz</th>
+              <th style="text-align:center;padding:8px 12px;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;">Amal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for enr in enrollments %}
+            <tr class="pay-row" data-search="{{ enr.student.get_full_name|default:enr.student.username|lower }} {{ enr.student.email|lower }}"
+                style="border-bottom:1px solid #1f2937;{% if enr.amount_paid < enr.group.course.price and enr.status == 'approved' %}background:rgba(127,29,29,.05);{% endif %}">
+              <td style="padding:12px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:34px;height:34px;border-radius:50%;background:#374151;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;border:1px solid #4b5563;flex-shrink:0;color:#e2e8f0;">
+                    {{ enr.student.first_name|first|default:enr.student.email|first|upper }}
+                  </div>
+                  <div>
+                    <p style="color:#e2e8f0;font-weight:600;margin:0;">{{ enr.student.get_full_name|default:enr.student.username }}</p>
+                    <p style="color:#4b5563;font-size:.72rem;margin:0;">{{ enr.student.email }}</p>
+                  </div>
+                </div>
+              </td>
+              <td style="padding:12px;">
+                <p style="color:#e2e8f0;font-weight:600;margin:0;">{{ enr.group.course.title }}</p>
+                <p style="color:#00e699;font-size:.72rem;font-weight:700;margin:0;text-transform:uppercase;">{{ enr.group.name }}</p>
+              </td>
+              <td style="padding:12px;text-align:right;color:#9ca3af;">{{ enr.group.course.price|intcomma }}</td>
+              <td style="padding:12px;text-align:right;">
+                <span style="color:{% if enr.amount_paid >= enr.group.course.price %}#34d399{% elif enr.amount_paid > 0 %}#fb923c{% else %}#f87171{% endif %};font-weight:700;">
+                  {{ enr.amount_paid|intcomma }}
+                </span>
+              </td>
+              <td style="padding:12px;text-align:right;">
+                {% if enr.balance_status == 'excess' %}
+                  <span style="background:#065f46;color:#6ee7b7;padding:3px 10px;border-radius:6px;font-size:.75rem;font-weight:800;">+{{ enr.remaining_debt|abs|intcomma }}</span>
+                {% elif enr.balance_status == 'debt' %}
+                  <span style="background:#450a0a;color:#f87171;padding:3px 10px;border-radius:6px;font-size:.75rem;font-weight:700;">{{ enr.remaining_debt|intcomma }}</span>
+                {% else %}
+                  <span style="color:#34d399;font-size:.78rem;font-weight:700;">✓ To'liq</span>
+                {% endif %}
+              </td>
+              <td style="padding:12px;text-align:center;">
+                {% if enr.status == 'approved' and enr.amount_paid < enr.group.course.price %}
+                <button onclick="openPayModal('{{ enr.id }}', '{{ enr.student.get_full_name|default:enr.student.username|escapejs }}', '{{ enr.group.course.title|escapejs }} - {{ enr.group.name|escapejs }}', {{ enr.group.course.price }}, {{ enr.amount_paid }}, {{ enr.group.teacher_percent }}, {{ enr.group.assistant_percent }})"
+                  style="background:#064e3b;border:1px solid #065f46;color:#6ee7b7;padding:5px 12px;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;">
+                  + To'lov
+                </button>
+                {% elif enr.amount_paid >= enr.group.course.price %}
+                <span style="color:#34d399;font-size:.78rem;"><i class="fa-solid fa-check-circle"></i></span>
+                {% else %}
+                <span style="color:#4b5563;font-size:.75rem;">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" style="text-align:center;color:#4b5563;padding:32px;font-style:italic;">Yozuvlar topilmadi.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: SALARY ── -->
+  <div id="section-salary" class="section">
+    <div class="card" style="padding:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+        <h3 style="color:#fff;font-weight:700;">Xodimlarga Oylik Yuborish</h3>
+        <a href="{% url 'salary:list' %}" style="background:#252830;border:1px solid #374151;color:#e2e8f0;padding:8px 16px;border-radius:10px;font-weight:700;font-size:.82rem;display:flex;align-items:center;gap:7px;">
+          <i class="fa-solid fa-money-bill-wave" style="color:#00e699;"></i> Maoshlar sahifasi
+        </a>
+      </div>
+      {% if salary_payments %}
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        {% for p in salary_payments %}
+        <div style="background:#1a1c23;border:1px solid #374151;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <p style="color:#e2e8f0;font-weight:600;margin:0;font-size:.88rem;">{{ p.enrollment.student.get_full_name|default:p.enrollment.student.username }}</p>
+            <p style="color:#4b5563;font-size:.72rem;margin:2px 0 0 0;">{{ p.paid_at|date:"d.m.Y H:i" }}</p>
+          </div>
+          <div style="text-align:right;">
+            <p style="color:#00e699;font-weight:700;margin:0;">{{ p.amount|intcomma }} UZS</p>
+            <p style="color:#374151;font-size:.7rem;margin:0;">maosh o'tkazma</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p style="color:#4b5563;text-align:center;padding:24px 0;font-style:italic;font-size:.84rem;">Hali o'tkazma amalga oshirilmagan.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     SIMPLE PAYMENT MODAL
+══════════════════════════════════════════════ -->
+<div id="payModal">
+  <div style="background:#1a1c23;border:1px solid #374151;border-radius:20px;width:100%;max-width:480px;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.95);">
+    
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #374151;">
+      <h3 style="color:#fff;font-weight:700;font-size:1rem;display:flex;align-items:center;gap:9px;">
+        <i class="fa-solid fa-money-bill-wave" style="color:#00e699;"></i> To'lov Qabul Qilish
+      </h3>
+      <button onclick="closePayModal()" style="background:transparent;border:none;color:#9ca3af;cursor:pointer;font-size:1.1rem;">✕</button>
+    </div>
+
+    <div style="padding:24px;">
+      <div style="background:#252830;border:1px solid #374151;border-radius:12px;padding:14px;margin-bottom:20px;">
+        <p id="m-student" style="color:#fff;font-weight:700;margin-bottom:2px;"></p>
+        <p id="m-group" style="color:#00e699;font-size:.78rem;font-weight:700;margin-bottom:10px;"></p>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><p class="field-label" style="margin-bottom:2px;">Kurs narxi</p><p id="m-price" style="color:#e2e8f0;font-weight:700;"></p></div>
+          <div><p class="field-label" style="margin-bottom:2px;">Qarz</p><p id="m-debt" style="color:#f87171;font-weight:800;"></p></div>
+        </div>
+      </div>
+
+      <form method="POST" action="{% url 'payments:record' %}">
+        {% csrf_token %}
+        <input type="hidden" name="enrollment_id" id="m-enrId">
+        
+        <div style="margin-bottom:16px;">
+          <label class="field-label">To'lov Summasi (UZS)</label>
+          <input type="number" name="amount" id="m-amount" required min="1" placeholder="Summani kiriting..." class="field-input" oninput="updateShares()">
+          <div id="m-quick" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;"></div>
+        </div>
+
+        <div style="background:#0d0f14;border:1px solid #374151;border-radius:10px;padding:12px;margin-bottom:16px;display:flex;justify-content:space-between;font-size:.72rem;">
+          <div><span style="color:#6b7280;text-transform:uppercase;font-weight:700;">Ustoz:</span> <span id="s-teacher" style="color:#fff;font-weight:700;">0</span></div>
+          <div><span style="color:#6b7280;text-transform:uppercase;font-weight:700;">Yordamchi:</span> <span id="s-assistant" style="color:#fff;font-weight:700;">0</span></div>
+          <div><span style="color:#6b7280;text-transform:uppercase;font-weight:700;">Markaz:</span> <span id="s-center" style="color:#fff;font-weight:700;">0</span></div>
+        </div>
+
+        <div style="margin-bottom:24px;">
+          <label class="field-label">To'lov Usuli</label>
+          <select name="method" class="field-input">
+            <option value="cash">💵 Naqd pul</option>
+            <option value="card">💳 Karta</option>
+            <option value="click">⚡ Click</option>
+            <option value="payme">🏢 Payme</option>
+          </select>
+        </div>
+
+        <button type="submit" style="width:100%;background:#00e699;color:#064e3b;border:none;padding:14px;border-radius:12px;font-weight:800;font-size:.95rem;cursor:pointer;">
+          ✅ To'lovni Tasdiqlash
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+var curData = {};
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});
+  document.getElementById('section-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function filterPayments(q) {
+  q = q.trim().toLowerCase();
+  document.querySelectorAll('.pay-row').forEach(function(row) {
+    var txt = row.dataset.search;
+    row.style.display = (!q || txt.includes(q)) ? '' : 'none';
+  });
+}
+
+function openPayModal(id, name, group, price, paid, tp, ap) {
+  curData = { id:id, price:price, paid:paid, tp:tp, ap:ap };
+  var debt = price - paid;
+  
+  document.getElementById('m-enrId').value = id;
+  document.getElementById('m-student').textContent = name;
+  document.getElementById('m-group').textContent = group;
+  document.getElementById('m-price').textContent = fmt(price);
+  
+  var debt = price - paid;
+  var dEl = document.getElementById('m-debt');
+  if (debt > 0) {
+    dEl.textContent = fmt(debt);
+    dEl.style.color = '#f87171';
+  } else {
+    dEl.textContent = '+' + fmt(Math.abs(debt));
+    dEl.style.color = '#00e699';
+  }
+  document.getElementById('m-amount').value = debt > 0 ? debt : '';
+  
+  var q = document.getElementById('m-quick');
+  q.innerHTML = '';
+  [500000, 1000000, debt].filter(v => v > 0).forEach(v => {
+    let b = document.createElement('button');
+    b.type='button'; b.textContent = fmt(v);
+    b.style.cssText = 'background:#1a1c23;border:1px solid #374151;color:#e2e8f0;padding:4px 10px;border-radius:6px;font-size:.72rem;cursor:pointer;';
+    b.onclick = () => { document.getElementById('m-amount').value = v; updateShares(); };
+    q.appendChild(b);
+  });
+
+  document.getElementById('payModal').classList.add('open');
+  updateShares();
+}
+
+function closePayModal() { document.getElementById('payModal').classList.remove('open'); }
+
+function updateShares() {
+  var amt = parseFloat(document.getElementById('m-amount').value) || 0;
+  var tp = parseFloat(curData.tp) || 0;
+  var ap = parseFloat(curData.ap) || 0;
+  
+  var tVal = (amt * tp) / 100;
+  var aVal = (amt * ap) / 100;
+  var cVal = amt - tVal - aVal;
+  
+  document.getElementById('s-teacher').textContent = fmt(tVal);
+  document.getElementById('s-assistant').textContent = fmt(aVal);
+  document.getElementById('s-center').textContent = fmt(cVal);
+}
+
+function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
+
+document.getElementById('payModal').onclick = function(e){ if(e.target===this) closePayModal(); };
+</script>
+
+</body>
+</html>

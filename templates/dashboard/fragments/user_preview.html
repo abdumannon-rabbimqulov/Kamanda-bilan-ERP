@@ -1,0 +1,149 @@
+<div style="font-family:Inter,sans-serif;background:#1a1c23;color:#e2e8f0;min-width:0;">
+
+  <!-- User Header -->
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+    <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#065f46,#047857);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.3rem;color:#fff;border:2px solid #00e699;flex-shrink:0;">
+      {{ profile.first_name|first|default:profile.email|first|upper }}
+    </div>
+    <div>
+      <h2 style="font-size:1.1rem;font-weight:800;color:#fff;margin:0 0 3px 0;">{{ profile.get_full_name|default:profile.username }}</h2>
+      <p style="color:#6b7280;font-size:.78rem;margin:0 0 5px 0;">{{ profile.email }}</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        {% if profile.role == 'student' %}<span style="background:#dbeafe;color:#1e40af;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;">O'quvchi</span>
+        {% elif profile.role == 'teacher' %}<span style="background:#fef3c7;color:#92400e;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;">O'qituvchi</span>
+        {% elif profile.role == 'assistant' %}<span style="background:#f3e8ff;color:#6b21a8;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;">Yordamchi</span>
+        {% elif profile.role == 'admin' %}<span style="background:#fee2e2;color:#991b1b;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;">Admin</span>
+        {% endif %}
+        {% if profile.is_active %}<span style="background:#d1fae5;color:#065f46;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;">Aktiv</span>
+        {% else %}<span style="background:#450a0a;color:#fca5a5;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;">Bloklangan</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div style="height:1px;background:#374151;margin-bottom:18px;"></div>
+
+  <!-- STUDENT: Enrollments with group change -->
+  {% if profile.role == 'student' %}
+  <p style="color:#9ca3af;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px 0;">
+    <i class="fa-solid fa-book-open" style="margin-right:5px;color:#60a5fa;"></i>Guruhlar va To'lovlar
+  </p>
+  {% if enrollments %}
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    {% for e in enrollments %}
+    <div style="background:#252830;border:1px solid {% if e.is_debtor %}#7f1d1d{% else %}#064e3b{% endif %};border-radius:12px;padding:14px;position:relative;">
+      <!-- Badge -->
+      {% if e.is_debtor %}
+      <div style="position:absolute;top:0;right:0;background:#7f1d1d;padding:2px 10px;font-size:.6rem;font-weight:700;color:#fca5a5;border-bottom-left-radius:8px;text-transform:uppercase;">Qarzdor</div>
+      {% else %}
+      <div style="position:absolute;top:0;right:0;background:#064e3b;padding:2px 10px;font-size:.6rem;font-weight:700;color:#6ee7b7;border-bottom-left-radius:8px;text-transform:uppercase;">To'liq</div>
+      {% endif %}
+
+      <p style="color:#fff;font-weight:700;margin:0 0 2px 0;padding-right:70px;">{{ e.group.name }}</p>
+      <p style="color:#00e699;font-size:.72rem;font-weight:700;margin:0 0 10px 0;letter-spacing:.05em;">{{ e.course.title|upper }}</p>
+
+      <!-- Payment summary -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+        <div>
+          <p style="color:#6b7280;font-size:.6rem;margin:0 0 2px 0;text-transform:uppercase;font-weight:700;">Kurs narxi</p>
+          <p style="color:#e2e8f0;font-weight:700;font-size:.84rem;margin:0;">{{ e.course.price|intcomma }} UZS</p>
+        </div>
+        <div>
+          <p style="color:#6b7280;font-size:.6rem;margin:0 0 2px 0;text-transform:uppercase;font-weight:700;">To'langan</p>
+          <p style="color:{% if e.is_debtor %}#f87171{% else %}#34d399{% endif %};font-weight:700;font-size:.84rem;margin:0;">{{ e.amount_paid|intcomma }} UZS</p>
+        </div>
+        <div>
+          <p style="color:#6b7280;font-size:.6rem;margin:0 0 2px 0;text-transform:uppercase;font-weight:700;">Qarz</p>
+          <p style="color:{% if e.is_debtor %}#f87171{% else %}#34d399{% endif %};font-weight:700;font-size:.84rem;margin:0;">{% if e.is_debtor %}-{{ e.debt|intcomma }} UZS{% else %}—{% endif %}</p>
+        </div>
+      </div>
+
+      <!-- Actions row -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+
+        <!-- Change group -->
+        <div style="flex:1;min-width:160px;">
+          <form method="POST" action="/dashboard/enrollment/{{ e.enrollment.id }}/change-group/" style="display:flex;gap:6px;">
+            {% csrf_token %}
+            <select name="group_id" style="flex:1;background:#1a1c23;border:1px solid #374151;color:#e2e8f0;padding:6px 10px;border-radius:8px;font-size:.78rem;outline:none;font-family:Inter,sans-serif;">
+              {% for g in all_groups %}
+              <option value="{{ g.id }}" {% if g.id == e.group.id %}selected{% endif %}>{{ g.name }} — {{ g.course.title }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" style="background:#252830;border:1px solid #374151;color:#9ca3af;padding:6px 12px;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;"
+              title="Guruhni o'zgartirish">🔄 Ko'chir</button>
+          </form>
+        </div>
+
+        <!-- Remove from group -->
+        <form method="POST" action="/dashboard/enrollment/{{ e.enrollment.id }}/remove/"
+          onsubmit="return confirm('{{ e.group.name }} guruhidan chiqarilsinmi?')">
+          {% csrf_token %}
+          <button type="submit" style="background:#450a0a;border:1px solid #7f1d1d;color:#f87171;padding:6px 12px;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;"
+            title="Guruhdan chiqarish">🗑 Chiqar</button>
+        </form>
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:#4b5563;font-style:italic;text-align:center;padding:16px 0;">Hali birorta kursga yozilmagan.</p>
+  {% endif %}
+
+  <!-- TEACHER: Groups Taught -->
+  {% elif profile.role == 'teacher' %}
+  <p style="color:#9ca3af;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px 0;">
+    <i class="fa-solid fa-chalkboard-user" style="margin-right:5px;color:#fbbf24;"></i>Boshqaradigan guruhlar
+  </p>
+  {% if taught_groups %}
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    {% for g in taught_groups %}
+    <div style="background:#252830;border:1px solid #374151;border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <p style="color:#fff;font-weight:700;margin:0 0 2px 0;">{{ g.name }}</p>
+        <p style="color:#00e699;font-size:.72rem;font-weight:700;margin:0;">{{ g.course.title }}</p>
+        <p style="color:#fbbf24;font-size:.7rem;margin:3px 0 0 0;">Ustoz ulushi: {{ g.teacher_percent }}%</p>
+      </div>
+      {% if g.is_active %}
+      <span style="background:#d1fae5;color:#065f46;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:999px;">FAOL</span>
+      {% else %}
+      <span style="background:#450a0a;color:#fca5a5;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:999px;">YOPILGAN</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:#4b5563;font-style:italic;text-align:center;padding:16px 0;">Hala hech bir guruhga biriktirilmagan.</p>
+  {% endif %}
+
+  <!-- ASSISTANT: Groups Assisted -->
+  {% elif profile.role == 'assistant' %}
+  <p style="color:#9ca3af;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px 0;">
+    <i class="fa-solid fa-user-tie" style="margin-right:5px;color:#a78bfa;"></i>Yordamchi sifatidagi guruhlar
+  </p>
+  {% if assisted_groups %}
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    {% for g in assisted_groups %}
+    <div style="background:#252830;border:1px solid #374151;border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <p style="color:#fff;font-weight:700;margin:0 0 2px 0;">{{ g.name }}</p>
+        <p style="color:#00e699;font-size:.72rem;font-weight:700;margin:0;">{{ g.course.title }}</p>
+        <p style="color:#a78bfa;font-size:.7rem;margin:3px 0 0 0;">Yordamchi ulushi: {{ g.assistant_percent }}%</p>
+      </div>
+      {% if g.is_active %}
+      <span style="background:#d1fae5;color:#065f46;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:999px;">FAOL</span>
+      {% else %}
+      <span style="background:#450a0a;color:#fca5a5;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:999px;">YOPILGAN</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:#4b5563;font-style:italic;text-align:center;padding:16px 0;">Hala hech bir guruhga biriktirilmagan.</p>
+  {% endif %}
+
+  {% else %}
+  <p style="color:#6b7280;text-align:center;padding:20px 0;">Admin tizim uchun alohida ma'lumot mavjud emas.</p>
+  {% endif %}
+
+</div>
