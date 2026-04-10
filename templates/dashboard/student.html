@@ -84,6 +84,28 @@
     <!-- Main Right Content -->
     <main class="flex-1 overflow-y-auto pb-10">
       
+      {% if has_unpaid %}
+      <!-- Priority Payment Alert -->
+      <div class="mb-8 bg-red-900/30 border-2 border-red-500/50 p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden backdrop-blur-sm">
+         <div class="absolute -right-10 -top-10 w-32 h-32 bg-red-500 opacity-10 rounded-full blur-3xl"></div>
+         <div class="flex items-center space-x-6 relative z-10">
+           <div class="w-16 h-16 rounded-2xl bg-red-500 flex items-center justify-center text-white text-3xl shadow-lg ring-4 ring-red-500/20">
+             <i class="fa-solid fa-credit-card"></i>
+           </div>
+           <div>
+             <h3 class="text-xl font-bold text-white mb-1">To'lov kutilmoqda!</h3>
+             <p class="text-red-200 text-sm leading-relaxed max-w-md">
+               Siz yangi guruhga qo'shildingiz. Kurs darslaridan to'liq foydalanish uchun iltimos, birinchi oylik to'lovni amalga oshiring.
+             </p>
+           </div>
+         </div>
+         <a href="{% url 'payments:dashboard' %}" class="relative z-10 bg-white text-red-900 font-extrabold px-8 py-4 rounded-2xl hover:bg-red-50 transition shadow-xl uppercase tracking-wider text-sm flex items-center gap-2">
+           <span>To'lov bo'limiga o'tish</span>
+           <i class="fa-solid fa-arrow-right"></i>
+         </a>
+      </div>
+      {% endif %}
+
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         <!-- Faol Kurs Card (Takes 2 cols) -->

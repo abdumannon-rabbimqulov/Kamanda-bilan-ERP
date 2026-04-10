@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.db.models import F
 from django.contrib.auth.decorators import login_required
 from apps.accounts.decorators import role_required
 from apps.courses.models import Course, Enrollment
@@ -27,10 +28,14 @@ def student_dashboard(request):
     
     active_enrollment = enrollments.filter(status='approved').first()
     
+    # Check for unpaid enrollments to focus on payments
+    unpaid_enrollment = enrollments.filter(status='approved', amount_paid__lt=F('group__course__price')).exists()
+    
     context = {
         'enrollments': enrollments,
         'certificates': certificates,
-        'active_enrollment': active_enrollment
+        'active_enrollment': active_enrollment,
+        'has_unpaid': unpaid_enrollment,
     }
     
     if active_enrollment:
@@ -233,7 +238,7 @@ def admin_dashboard(request):
                 
                 # Check for existing
                 if Enrollment.objects.filter(student=student, group=group).exists():
-                    messages.warning(request, f"{student.first_name} allaqachon '{group.name}' guruhida mavjud!")
+                    messages.warning(request, f"Bu user '{group.name}' guruhida bor!")
                 else:
                     enr = Enrollment.objects.create(
                         student=student, 

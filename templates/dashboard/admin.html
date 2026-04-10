@@ -277,15 +277,15 @@
                            {% if u.is_active %}
                              {% if u.role == 'student' %}
                                {% if u.has_approved_group %}
-                                 <span class="text-mint"><i class="fa-solid fa-check-circle"></i> Faol</span>
+                                 <span class="text-mint font-bold"><i class="fa-solid fa-check-circle"></i> Faol</span>
                                {% else %}
-                                 <span class="text-yellow-500 font-bold bg-yellow-900/20 px-2 py-0.5 rounded border border-yellow-700/50"><i class="fa-solid fa-triangle-exclamation"></i> Guruhsiz</span>
+                                 <span class="text-red-400 font-bold bg-red-900/20 px-2 py-0.5 rounded border border-red-500/30"><i class="fa-solid fa-triangle-exclamation"></i> Noaktiv</span>
                                {% endif %}
                              {% else %}
-                               <span class="text-mint"><i class="fa-solid fa-check"></i> Faol</span>
+                               <span class="text-mint font-bold"><i class="fa-solid fa-check"></i> Faol</span>
                              {% endif %}
                            {% else %}
-                             <span class="text-red-400">Bloklangan</span>
+                             <span class="text-red-400 font-bold">Bloklangan</span>
                            {% endif %}
                         </td>
                         <td class="py-4 px-4 text-right text-sm text-gray-400">{{ u.date_joined|date:"d.m.Y" }}</td>
