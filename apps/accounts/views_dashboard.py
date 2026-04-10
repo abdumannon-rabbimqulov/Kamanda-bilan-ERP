@@ -139,10 +139,16 @@ def teacher_dashboard(request):
     
     groups_with_stats = []
     for g in groups:
+        total_lessons = Lesson.objects.filter(group=g).count()
+        completed_lessons = Lesson.objects.filter(group=g, date__lt=today).count()
+        progress = int((completed_lessons / total_lessons) * 100) if total_lessons > 0 else 0
+        
         groups_with_stats.append({
             'group': g,
             'students_count': Enrollment.objects.filter(group=g, status='approved').count(),
-            'lessons_count': Lesson.objects.filter(group=g).count(),
+            'lessons_count': total_lessons,
+            'completed_lessons': completed_lessons,
+            'progress': progress,
             'is_new': g.start_date >= today
         })
         
@@ -185,10 +191,14 @@ def teacher_dashboard(request):
 @login_required
 @role_required('assistant')
 def assistant_dashboard(request):
-    from apps.courses.models import Group, Enrollment
+    from apps.courses.models import Group, Enrollment, Lesson
     from apps.salary.models import Salary
     from apps.attendance.models import Attendance
+    from apps.homework.models import Homework
+    from apps.exams.models import Exam
+    from apps.chat.models import Message
     from django.utils import timezone
+    from django.db.models import Q
     
     from apps.notifications.models import Notification
     unread_notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')
@@ -199,12 +209,34 @@ def assistant_dashboard(request):
     latest_salary = Salary.objects.filter(user=request.user).order_by('-month').first()
     salary_amount = latest_salary.total_amount if latest_salary else 0
     
+    today = timezone.now().date()
+    
+    # --- Advanced Stats for Maximal Assistant ---
+    # Pending Homeworks (Only submitted ones for my groups)
+    pending_homeworks = Homework.objects.filter(lesson__group__in=groups, status='submitted').order_by('-submitted_at')
+    pending_hw_count = pending_homeworks.count()
+    
+    # Recent/Upcoming Exams (for my groups)
+    upcoming_exams = Exam.objects.filter(group__in=groups).order_by('-date')[:5]
+    
+    # Unread Chats (Direct to me or in my groups)
+    unread_chats_count = Message.objects.filter(
+        Q(receiver=request.user, msg_type='direct') | Q(group__in=groups, msg_type='group'),
+        is_read=False
+    ).exclude(sender=request.user).count()
+
     groups_with_stats = []
     for g in groups:
+        total_lessons = Lesson.objects.filter(group=g).count()
+        completed_lessons = Lesson.objects.filter(group=g, date__lt=today).count()
+        progress = int((completed_lessons / total_lessons) * 100) if total_lessons > 0 else 0
+        
         groups_with_stats.append({
             'group': g,
             'students_count': Enrollment.objects.filter(group=g, status='approved').count(),
-            'lessons_count': Lesson.objects.filter(group=g).count(),
+            'lessons_count': total_lessons,
+            'completed_lessons': completed_lessons,
+            'progress': progress,
         })
         
     context = {
@@ -213,6 +245,10 @@ def assistant_dashboard(request):
         'salary_amount': salary_amount,
         'groups_with_stats': groups_with_stats,
         'unread_notifications': unread_notifications,
+        'pending_hw_count': pending_hw_count,
+        'pending_homeworks': pending_homeworks[:5],
+        'upcoming_exams': upcoming_exams,
+        'unread_chats_count': unread_chats_count,
     }
     return render(request, 'dashboard/assistant.html', context)
 
@@ -412,7 +448,7 @@ def admin_dashboard(request):
 
 
 @login_required
-@role_required('admin')
+@role_required('admin', 'teacher')
 def group_preview(request, group_id):
     from apps.courses.models import Group, Enrollment, Lesson
     from django.shortcuts import get_object_or_404

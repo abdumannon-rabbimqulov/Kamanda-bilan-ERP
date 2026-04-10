@@ -88,20 +88,12 @@ def start_lesson(request, lesson_id):
         messages.info(request, "Dars allaqachon boshlangan.")
         return redirect('dashboard:teacher')
     
-    # Check 10 minute constraint
-    now = timezone.now()
-    # Combine lesson date and group start time
-    scheduled_dt = timezone.make_aware(datetime.combine(lesson.date, lesson.group.lesson_start_time))
-    
-    earliest_start = scheduled_dt - timedelta(minutes=10)
-    
-    if now < earliest_start:
-        diff = earliest_start - now
-        minutes = int(diff.total_seconds() // 60)
-        messages.error(request, f"Darsni boshlash uchun hali barvaqt. Iltimos {minutes} daqiqa kuting.")
+    # Check if lesson is scheduled for today or past
+    if lesson.date > timezone.now().date():
+        messages.error(request, "Kelajakdagi darsni hozirdan boshlab bo'lmaydi.")
         return redirect('dashboard:teacher')
     
-    lesson.started_at = now
+    lesson.started_at = timezone.now()
     lesson.save()
     messages.success(request, f"{lesson.title} muvaffaqiyatli boshlandi.")
     return redirect('dashboard:teacher')

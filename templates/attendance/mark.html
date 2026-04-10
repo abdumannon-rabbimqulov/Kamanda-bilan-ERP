@@ -38,17 +38,28 @@
   <form method="POST" class="max-w-4xl mx-auto w-full">
     {% csrf_token %}
     
-    <!-- Date picker row -->
-    <div class="card-bg p-6 rounded-2xl border border-gray-700 mb-6 flex items-center justify-between">
-      <label class="text-white font-bold tracking-wide">Dars sanasi:</label>
-      <input type="date" name="date" value="{{ date_str }}" 
-        class="bg-[#1a1c23] border border-gray-600 rounded-xl px-4 py-2 text-white font-medium outline-none focus:border-mint transition">
+    <!-- Date picker & Quick actions row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div class="card-bg p-6 rounded-2xl border border-gray-700 flex items-center justify-between">
+        <label class="text-white font-bold tracking-wide text-sm">Dars sanasi:</label>
+        <input type="date" name="date" value="{{ date_str }}" 
+          {% if user.role != 'admin' %}readonly style="pointer-events: none; opacity: 0.7;"{% endif %}
+          class="bg-[#1a1c23] border border-gray-600 rounded-xl px-4 py-2 text-white font-medium outline-none focus:border-mint transition text-sm">
+      </div>
+      <div class="card-bg p-6 rounded-2xl border border-gray-700 flex items-center justify-between">
+        <label class="text-gray-400 font-bold tracking-wide text-xs uppercase">Tezkor amallar:</label>
+        <button type="button" onclick="markAllPresent()" 
+          class="bg-blue-600/20 border border-blue-500 text-blue-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition">
+          <i class="fa-solid fa-check-double mr-2"></i>HAMMA KELDI
+        </button>
+      </div>
     </div>
 
     <!-- Students List -->
     <div class="card-bg rounded-2xl border border-gray-700 overflow-hidden shadow-2xl mb-8">
-      <div class="bg-[#1a1c23]/50 px-6 py-4 border-b border-gray-700">
+      <div class="bg-[#1a1c23]/50 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
         <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500">Talabalar ro'yxati</h3>
+        <span class="text-gray-500 text-[10px]">{{ students_with_status|length }} ta o'quvchi</span>
       </div>
       
       <div class="divide-y divide-gray-700/50">
@@ -68,25 +79,28 @@
           <div class="flex gap-2">
              <div class="relative">
                <input type="radio" name="status_{{ item.enrollment.student.id }}" value="present" id="p_{{ item.enrollment.student.id }}" 
-                 class="hidden" {% if item.current_status == 'present' %}checked{% endif %}>
-               <label for="p_{{ item.enrollment.student.id }}" class="px-3 py-1.5 rounded-lg border border-gray-700 text-xs font-bold cursor-pointer transition flex items-center gap-1 hover:border-gray-500 text-gray-400">
-                 <i class="fa-solid fa-check"></i> Keldi
+                 class="hidden att-radio-present" {% if item.current_status == 'present' %}checked{% endif %}>
+               <label for="p_{{ item.enrollment.student.id }}" 
+                 class="px-3 py-1.5 rounded-lg border border-gray-700 text-[10px] font-extrabold cursor-pointer transition flex items-center gap-1 hover:border-gray-500 text-gray-400 att-label-present">
+                 <i class="fa-solid fa-check"></i> KELDI
                </label>
              </div>
              
              <div class="relative">
                <input type="radio" name="status_{{ item.enrollment.student.id }}" value="absent" id="a_{{ item.enrollment.student.id }}" 
-                 class="hidden" {% if item.current_status == 'absent' %}checked{% endif %}>
-               <label for="a_{{ item.enrollment.student.id }}" class="px-3 py-1.5 rounded-lg border border-gray-700 text-xs font-bold cursor-pointer transition flex items-center gap-1 hover:border-gray-500 text-gray-400">
-                 <i class="fa-solid fa-xmark"></i> Kelmadi
+                 class="hidden att-radio-absent" {% if item.current_status == 'absent' %}checked{% endif %}>
+               <label for="a_{{ item.enrollment.student.id }}" 
+                 class="px-3 py-1.5 rounded-lg border border-gray-700 text-[10px] font-extrabold cursor-pointer transition flex items-center gap-1 hover:border-gray-500 text-gray-400 att-label-absent">
+                 <i class="fa-solid fa-xmark"></i> YO'Q
                </label>
              </div>
              
              <div class="relative">
                <input type="radio" name="status_{{ item.enrollment.student.id }}" value="late" id="l_{{ item.enrollment.student.id }}" 
-                 class="hidden" {% if item.current_status == 'late' %}checked{% endif %}>
-               <label for="l_{{ item.enrollment.student.id }}" class="px-3 py-1.5 rounded-lg border border-gray-700 text-xs font-bold cursor-pointer transition flex items-center gap-1 hover:border-gray-500 text-gray-400">
-                 <i class="fa-solid fa-clock"></i> Kechikdi
+                 class="hidden att-radio-late" {% if item.current_status == 'late' %}checked{% endif %}>
+               <label for="l_{{ item.enrollment.student.id }}" 
+                 class="px-3 py-1.5 rounded-lg border border-gray-700 text-[10px] font-extrabold cursor-pointer transition flex items-center gap-1 hover:border-gray-500 text-gray-400 att-label-late">
+                 <i class="fa-solid fa-clock"></i> KECH
                </label>
              </div>
           </div>
@@ -95,9 +109,53 @@
       </div>
     </div>
 
-    <button type="submit" class="w-full bg-mint text-green-900 font-black py-4 rounded-2xl shadow-xl hover:bg-[#00cc88] transition transform active:scale-95 mb-10">
-      <i class="fa-solid fa-floppy-disk mr-2"></i>DAVOMATNI SAQLASH
+    <button type="submit" class="w-full bg-mint text-green-900 font-black py-5 rounded-2xl shadow-[0_10px_30px_rgba(0,230,153,0.3)] hover:bg-[#00cc88] transition transform active:scale-95 mb-16 text-sm tracking-widest uppercase">
+      <i class="fa-solid fa-floppy-disk mr-2"></i> Davomatni yakunlash va saqlash
     </button>
+    
+  </form>
+
+  <script>
+    function markAllPresent() {
+      const presentRadios = document.querySelectorAll('.att-radio-present');
+      presentRadios.forEach(radio => {
+        radio.checked = true;
+      });
+      // Add a small visual feedback
+      const btn = event.currentTarget;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check-double mr-2"></i>BELGILANDI!';
+      btn.style.borderColor = '#00e699';
+      btn.style.color = '#00e699';
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.style.borderColor = '#3b82f6';
+        btn.style.color = '#60a5fa';
+      }, 1000);
+    }
+  </script>
+
+  <style>
+    /* Radio enhancement styles */
+    .att-radio-present:checked + .att-label-present {
+        background: rgba(0, 230, 153, 0.15);
+        color: #00e699 !important;
+        border-color: #00e699 !important;
+        box-shadow: 0 0 10px rgba(0, 230, 153, 0.1);
+    }
+    .att-radio-absent:checked + .att-label-absent {
+        background: rgba(248, 113, 113, 0.15);
+        color: #f87171 !important;
+        border-color: #f87171 !important;
+        box-shadow: 0 0 10px rgba(248, 113, 113, 0.1);
+    }
+    .att-radio-late:checked + .att-label-late {
+        background: rgba(251, 191, 36, 0.15);
+        color: #fbce38 !important;
+        border-color: #fbce38 !important;
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.1);
+    }
+  </style>
     
   </form>
 

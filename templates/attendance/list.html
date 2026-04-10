@@ -27,7 +27,7 @@
       </div>
       <div class="flex gap-3 mt-4 md:mt-0">
         <a href="/dashboard/" class="border border-gray-600 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium hover:text-white transition">Dashboardga qaytish</a>
-        {% if user.role != 'student' %}
+        {% if user.role == 'admin' %}
         <a href="{% url 'attendance:mark' group.id %}" class="bg-mint text-green-900 px-5 py-2 rounded-lg text-sm font-bold shadow-lg hover:bg-[#00cc88] transition">
           <i class="fa-solid fa-plus mr-2"></i>Yangi davomat kiritish
         </a>
@@ -45,6 +45,61 @@
       </div>
     {% endif %}
 
+    <!-- ══ STUDENT-WISE SUMMARY (MAXIMAL FEATURE) ══ -->
+    <div class="mb-10">
+      <h3 class="text-sm font-bold uppercase tracking-widest text-mint mb-4 flex items-center">
+        <i class="fa-solid fa-chart-line mr-2"></i> Talabalar Davomat Statistikasi
+      </h3>
+      <div class="card-bg rounded-2xl border border-gray-700 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-[#1a1c23] border-b border-gray-700">
+                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Talaba</th>
+                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Ishtirok %</th>
+                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Keldi</th>
+                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Yo'q</th>
+                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Kech</th>
+                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Jami</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700/50">
+              {% for s in student_stats %}
+              <tr class="hover:bg-white/5 transition">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center font-bold text-[10px] text-gray-300">
+                      {{ s.student.first_name|first|upper }}
+                    </div>
+                    <div>
+                      <p class="text-white font-bold text-sm">{{ s.student.get_full_name|default:s.student.username }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <div class="flex flex-col items-center gap-1">
+                    <span class="font-bold {% if s.percent < 70 %}text-red-400{% elif s.percent < 90 %}text-yellow-400{% else %}text-mint{% endif %}">{{ s.percent }}%</span>
+                    <div class="w-20 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                      <div class="h-full {% if s.percent < 70 %}bg-red-500{% elif s.percent < 90 %}bg-yellow-500{% else %}bg-mint{% endif %}" style="width:{{ s.percent }}%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-center text-gray-300 text-sm">{{ s.present }}</td>
+                <td class="px-6 py-4 text-center text-red-400/80 text-sm font-bold">{{ s.absent }}</td>
+                <td class="px-6 py-4 text-center text-yellow-400/80 text-sm">{{ s.late }}</td>
+                <td class="px-6 py-4 text-center text-gray-500 text-sm font-bold">{{ s.total }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DAILY HISTORY ══ -->
+    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 mb-4 flex items-center">
+      <i class="fa-solid fa-clock-rotate-left mr-2"></i> Kunlik Davomat Tarixi
+    </h3>
     <div class="card-bg rounded-2xl border border-gray-700 shadow-xl overflow-hidden">
       <table class="w-full text-left border-collapse">
         <thead>

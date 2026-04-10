@@ -186,11 +186,21 @@
               <div class="flex justify-between items-start mb-3">
                 <div>
                   <h5 class="text-white font-bold text-sm">{{ item.group.name }}</h5>
-                  <p class="text-gray-500 text-[10px]">{{ item.group.schedule_type_display }} • {{ item.group.lesson_start_time|time:"H:i" }}</p>
+                  <p class="text-gray-500 text-[10px]">{{ item.group.get_schedule_type_display }} • {{ item.group.lesson_start_time|time:"H:i" }}</p>
                 </div>
-                <span class="text-[10px] text-gray-400 bg-gray-900 px-2 py-0.5 rounded border border-gray-700">{{ item.students_count }} talaba</span>
+                <div class="text-right">
+                  <span class="text-[10px] text-gray-400 bg-gray-900 px-2 py-0.5 rounded border border-gray-700 block mb-1">{{ item.students_count }} talaba</span>
+                  <span class="text-[9px] font-bold text-mint">{{ item.progress }}%</span>
+                </div>
               </div>
+              
+              <!-- Progress Bar (Maximal Feature) -->
+              <div class="w-full h-1 bg-gray-800 rounded-full overflow-hidden mb-4">
+                <div class="h-full bg-mint shadow-[0_0_8px_rgba(0,230,153,0.4)] transition-all duration-500" style="width:{{ item.progress }}%"></div>
+              </div>
+
               <div class="flex space-x-2">
+                <a href="javascript:void(0)" onclick="showPreview('{% url 'dashboard:group_preview' item.group.id %}', '{{ item.group.name }} — Jadval')" class="flex-1 bg-mint/10 text-mint py-1.5 rounded-lg text-[9px] font-bold uppercase text-center hover:bg-mint/20">Jadval</a>
                 <a href="{% url 'attendance:list' item.group.id %}" class="flex-1 bg-gray-800 text-gray-300 py-1.5 rounded-lg text-[9px] font-bold uppercase text-center hover:bg-gray-700">Tarix</a>
                 <a href="{% url 'exams:list' item.group.id %}" class="flex-1 bg-gray-800 text-gray-300 py-1.5 rounded-lg text-[9px] font-bold uppercase text-center hover:bg-gray-700">Imtihon</a>
                 <a href="{% url 'homework:list' item.group.id %}" class="flex-1 bg-gray-800 text-gray-300 py-1.5 rounded-lg text-[9px] font-bold uppercase text-center hover:bg-gray-700">Vazifa</a>
@@ -204,6 +214,58 @@
 
     </main>
   </div>
+
+  <!-- Universal Detail Preview Modal (MAXIMAL) -->
+  <div id="previewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(10px);">
+    <div style="background:#1a1c23;border:1px solid #374151;border-radius:24px;width:100%;max-width:640px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 60px rgba(0,0,0,1);">
+      <div style="padding:18px 24px;border-bottom:1px solid #374151;display:flex;justify-content:space-between;align-items:center;background:rgba(37,40,48,0.5);">
+         <h3 id="previewTitle" style="margin:0;font-size:1rem;font-weight:800;color:#fff;letter-spacing:-0.02em;">Guruh tafsiloti</h3>
+         <button onclick="closePreview()" style="background:transparent;border:none;color:#9ca3af;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#9ca3af'">
+            <i class="fa-solid fa-xmark text-lg"></i>
+         </button>
+      </div>
+      <div id="previewBody" style="flex:1;overflow-y:auto;padding:24px;background:#1a1c23;">
+         <!-- Content loaded via Fetch -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Universal Preview Modal ----
+    function showPreview(url, title) {
+      const modal = document.getElementById('previewModal');
+      const titleEl = document.getElementById('previewTitle');
+      const bodyEl = document.getElementById('previewBody');
+      
+      titleEl.textContent = title;
+      bodyEl.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;gap:15px;">
+          <svg width="42" height="42" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg" stroke="#00e699">
+            <g fill="none" fill-rule="evenodd"><g transform="translate(1 1)" stroke-width="2">
+              <circle stroke-opacity=".2" cx="18" cy="18" r="18"/>
+              <path d="M36 18c0-9.94-8.06-18-18-18"><animateTransform attributeName="transform" type="rotate" from="0 18 18" to="360 18 18" dur="0.9s" repeatCount="indefinite"/></path>
+            </g></g>
+          </svg>
+          <p style="color:#6b7280;font-size:0.85rem;font-weight:600;letter-spacing:0.02em;">Ma'lumotlar yuklanmoqda...</p>
+        </div>`;
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      
+      fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(r => r.text())
+        .then(html => { bodyEl.innerHTML = html; })
+        .catch(err => { bodyEl.innerHTML = `<p style="color:#f87171;text-align:center;padding:20px;font-weight:bold;">Xatolik: ${err}</p>`; });
+    }
+
+    function closePreview() {
+      document.getElementById('previewModal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    
+    document.getElementById('previewModal').addEventListener('click', function(e) {
+      if (e.target === this) closePreview();
+    });
+  </script>
 
   <!-- Scroll arrow at bottom -->
   <a href="{% url 'chat:list' %}" class="fixed bottom-6 right-6 z-50">

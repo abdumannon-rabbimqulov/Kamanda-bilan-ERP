@@ -39,6 +39,43 @@ def salary_list(request):
         # Calculate totals for teacher/assistant
         pending_balance = Salary.objects.filter(user=user, is_paid=False).aggregate(total=Sum('total_amount'))['total'] or 0
         history_total = Salary.objects.filter(user=user, is_paid=True).aggregate(total=Sum('total_amount'))['total'] or 0
+        
+        # ══ ENHANCEMENT: Calculate breakdown for each salary record ══
+        from apps.courses.models import Group, Enrollment
+        import calendar
+        
+        for s in salaries:
+            breakdown = []
+            month_start = s.month
+            last_day = calendar.monthrange(month_start.year, month_start.month)[1]
+            month_end = month_start.replace(day=last_day)
+            
+            # Find groups active for THIS user in THIS month
+            filter_kwargs = {
+                'start_date__lte': month_end,
+                'end_date__gte': month_start,
+            }
+            if s.user.role == 'teacher':
+                filter_kwargs['teacher'] = s.user
+            else:
+                filter_kwargs['assistant'] = s.user
+                
+            active_groups = Group.objects.filter(**filter_kwargs)
+            for g in active_groups:
+                count = Enrollment.objects.filter(group=g, status='approved').count()
+                if count > 0:
+                    revenue = g.course.price * Decimal(str(count))
+                    # Determine percent based on role
+                    pct = g.teacher_percent if s.user.role == 'teacher' else g.assistant_percent
+                    amount = (revenue * Decimal(str(pct))) / Decimal('100')
+                    breakdown.append({
+                        'group_name': g.name,
+                        'student_count': count,
+                        'course_price': g.course.price,
+                        'percent': pct,
+                        'amount': amount
+                    })
+            s.breakdown = breakdown
     else:
         pending_balance = 0
         history_total = 0
