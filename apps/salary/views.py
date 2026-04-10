@@ -26,17 +26,44 @@ def salary_list(request):
         latest_month = salaries.first().month if salaries.exists() else None
     
     # Calculate stats exactly for what gets displayed
-    # Tizim bo'yicha jami to'lovlar (Gross system revenue from Payment model)
     from apps.payments.models import Payment
-    gross_total = Payment.objects.filter(status='success').exclude(method='salary_transfer').aggregate(total=Sum('amount'))['total'] or 0
-    total_paid_str = f"{gross_total / 1000000:.1f}M UZS"
-
     
+    # Global Stats
+    gross_total = Payment.objects.filter(status='success').exclude(method='salary_transfer').aggregate(total=Sum('amount'))['total'] or 0
+    total_salaries_paid = Salary.objects.filter(is_paid=True).aggregate(total=Sum('total_amount'))['total'] or 0
+    center_balance = gross_total - total_salaries_paid
+    
+    # Monthly Stats (for the current month filter)
+    if latest_month:
+        month_start = latest_month.replace(day=1)
+        # Revenue from student payments in this month
+        monthly_revenue = Payment.objects.filter(
+            status='success', 
+            paid_at__year=latest_month.year, 
+            paid_at__month=latest_month.month
+        ).exclude(method='salary_transfer').aggregate(total=Sum('amount'))['total'] or 0
+        
+        # Expenses from salaries PAID in this month (regardless of which month the salary is for)
+        monthly_expense = Salary.objects.filter(
+            is_paid=True, 
+            paid_at__year=latest_month.year, 
+            paid_at__month=latest_month.month
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+        
+        monthly_profit = monthly_revenue - monthly_expense
+    else:
+        monthly_revenue = monthly_expense = monthly_profit = 0
+
     return render(request, 'salary/list.html', {
         'salaries': salaries,
-        'total_paid_str': total_paid_str,
+        'gross_total': gross_total,
+        'total_paid': total_salaries_paid,
+        'center_balance': center_balance,
         'latest_month': latest_month,
-        'filtered_month': month_filter
+        'filtered_month': month_filter,
+        'monthly_revenue': monthly_revenue,
+        'monthly_expense': monthly_expense,
+        'monthly_profit': monthly_profit,
     })
 
 @role_required('admin')

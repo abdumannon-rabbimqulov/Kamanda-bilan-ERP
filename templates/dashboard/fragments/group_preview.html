@@ -52,6 +52,25 @@
   <!-- Divider -->
   <div style="height:1px;background:#374151;margin-bottom:16px;"></div>
 
+  <!-- ══ MANAGEMENT ACTIONS ══ -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;">
+    <a href="{% url 'attendance:list' group.id %}" target="_top" style="text-decoration:none;background:#252830;border:1px solid #374151;border-radius:10px;padding:10px 5px;text-align:center;transition:all .2s;display:block;">
+      <i class="fa-solid fa-clock-rotate-left" style="color:#00e699;margin-bottom:6px;font-size:1rem;"></i>
+      <p style="color:#e2e8f0;font-size:.6rem;font-weight:700;text-transform:uppercase;margin:0;">Davomat</p>
+    </a>
+    <a href="{% url 'exams:list' group.id %}" target="_top" style="text-decoration:none;background:#252830;border:1px solid #374151;border-radius:10px;padding:10px 5px;text-align:center;transition:all .2s;display:block;">
+      <i class="fa-solid fa-graduation-cap" style="color:#fbbf24;margin-bottom:6px;font-size:1rem;"></i>
+      <p style="color:#e2e8f0;font-size:.6rem;font-weight:700;text-transform:uppercase;margin:0;">Imtihonlar</p>
+    </a>
+    <a href="{% url 'homework:list' group.id %}" target="_top" style="text-decoration:none;background:#252830;border:1px solid #374151;border-radius:10px;padding:10px 5px;text-align:center;transition:all .2s;display:block;">
+      <i class="fa-solid fa-book" style="color:#a78bfa;margin-bottom:6px;font-size:1rem;"></i>
+      <p style="color:#e2e8f0;font-size:.6rem;font-weight:700;text-transform:uppercase;margin:0;">Vazifalar</p>
+    </a>
+  </div>
+
+  <!-- Divider -->
+  <div style="height:1px;background:#374151;margin-bottom:16px;"></div>
+
   <!-- ══ FOIZ BOSHQARUVI ══ -->
   <div style="background:#0f1f15;border:1px solid #064e3b;border-radius:12px;padding:16px;margin-bottom:18px;">
     <p style="color:#6ee7b7;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px 0;"><i class="fa-solid fa-percent" style="margin-right:5px;"></i>Oylik Ulush Foizlarini Boshqarish</p>

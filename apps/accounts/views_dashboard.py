@@ -74,7 +74,8 @@ def teacher_dashboard(request):
     total_students = Enrollment.objects.filter(group__in=groups, status='approved').values('student').distinct().count()
     
     latest_salary = Salary.objects.filter(user=request.user).order_by('-month').first()
-    salary_amount = f"{float(latest_salary.total_amount) / 1000000:.1f}M" if latest_salary else "0.0M"
+    salary_amount = latest_salary.total_amount if latest_salary else 0
+
     
     total_att = Attendance.objects.filter(group__in=groups).count()
     presents = Attendance.objects.filter(group__in=groups, status='present').count()
@@ -119,7 +120,33 @@ def teacher_dashboard(request):
 @login_required
 @role_required('assistant')
 def assistant_dashboard(request):
-    return render(request, 'dashboard/assistant.html')
+    from apps.courses.models import Group, Enrollment
+    from apps.salary.models import Salary
+    from apps.attendance.models import Attendance
+    from django.utils import timezone
+    
+    groups = Group.objects.filter(assistant=request.user)
+    total_students = Enrollment.objects.filter(group__in=groups, status='approved').values('student').distinct().count()
+    
+    latest_salary = Salary.objects.filter(user=request.user).order_by('-month').first()
+    salary_amount = latest_salary.total_amount if latest_salary else 0
+    
+    groups_with_stats = []
+    for g in groups:
+        groups_with_stats.append({
+            'group': g,
+            'students_count': Enrollment.objects.filter(group=g, status='approved').count(),
+            'lessons_count': Lesson.objects.filter(group=g).count(),
+        })
+        
+    context = {
+        'total_students': total_students,
+        'groups_count': groups.count(),
+        'salary_amount': salary_amount,
+        'groups_with_stats': groups_with_stats,
+    }
+    return render(request, 'dashboard/assistant.html', context)
+
 
 from django.contrib import messages
 from apps.accounts.models import User
@@ -168,12 +195,14 @@ def admin_dashboard(request):
     # Metrics
     total_students = User.objects.filter(role='student').count()
     
-    # Calculate revenue this month
-    today = date.today()
-    revenue_agg = Enrollment.objects.filter(status='approved', enrolled_at__year=today.year, enrolled_at__month=today.month).aggregate(total=Sum('amount_paid'))
-    revenue_val = float(revenue_agg['total'] or 0)
-    total_revenue_str = f"{revenue_val / 1000000:.1f}M"
+    # Financial Stats (Consistent with centers balance)
+    from apps.payments.models import Payment
+    from apps.salary.models import Salary
     
+    gross_total = Payment.objects.filter(status='success').exclude(method='salary_transfer').aggregate(total=Sum('amount'))['total'] or 0
+    total_paid = Salary.objects.filter(is_paid=True).aggregate(total=Sum('total_amount'))['total'] or 0
+    center_balance = gross_total - total_paid
+
     active_groups = Group.objects.filter(is_active=True).count()
     pending_enrollments_all = Enrollment.objects.filter(status='pending').order_by('-enrolled_at')
     pending_count = pending_enrollments_all.count()
@@ -188,7 +217,9 @@ def admin_dashboard(request):
         'users': users,
         'groups_list': groups_list,
         'total_students': total_students,
-        'total_revenue': total_revenue_str,
+        'total_revenue': gross_total,
+        'center_balance': center_balance,
+        'total_paid': total_paid,
         'active_groups': active_groups,
         'pending_count': pending_count,
         'recent_enrollments': pending_enrollments_all[:5],

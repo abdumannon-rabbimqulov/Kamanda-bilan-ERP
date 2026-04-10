@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Natijalarni Kiritish - LMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #1a1c23; color: #e2e8f0; font-family: Inter, sans-serif; }
+    .card-bg { background-color: #252830; }
+    .badge-bg { background-color: #1a1c23; }
+    .text-mint { color: #00e699; }
+    .bg-mint { background-color: #00e699; }
+    .bg-mint-soft { background-color: #e6fffa; color: #047857; }
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="min-h-screen flex flex-col p-6">
+
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-4 border-b border-gray-700">
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-1">Natijalarni kiritish</h1>
+      <p class="text-gray-400 text-sm">{{ exam.title }} — Maksimal ball: {{ exam.max_score }}</p>
+    </div>
+    <div class="mt-4 md:mt-0">
+      <a href="{% url 'exams:list' exam.group.id %}" class="text-gray-400 hover:text-white transition text-sm font-medium">
+        <i class="fa-solid fa-arrow-left mr-2"></i>Bekor qilish
+      </a>
+    </div>
+  </div>
+
+  <form method="POST" class="max-w-5xl mx-auto w-full">
+    {% csrf_token %}
+    
+    <div class="card-bg rounded-2xl border border-gray-700 overflow-hidden shadow-2xl mb-8">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-[#1a1c23] border-b border-gray-700">
+            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Talaba</th>
+            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center" style="width: 150px;">Ball</th>
+            <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Fikr / Feedback</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700/50">
+          {% for item in students_with_results %}
+          <tr class="hover:bg-white/5 transition">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-4">
+                <div class="w-9 h-9 rounded-full bg-mint-soft flex items-center justify-center font-bold text-[#047857] text-sm">
+                  {{ item.enrollment.student.first_name|first|upper }}
+                </div>
+                <div>
+                  <p class="text-white font-bold text-sm">{{ item.enrollment.student.get_full_name|default:item.enrollment.student.username }}</p>
+                  <p class="text-gray-500 text-[10px]">{{ item.enrollment.student.email }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <input type="number" name="score_{{ item.enrollment.student.id }}" 
+                value="{{ item.result.score|default:'' }}" min="0" max="{{ exam.max_score }}"
+                placeholder="0"
+                class="w-full bg-[#1a1c23] border border-gray-600 rounded-lg px-3 py-2 text-white text-center font-bold outline-none focus:border-mint transition">
+            </td>
+            <td class="px-6 py-4">
+              <input type="text" name="feedback_{{ item.enrollment.student.id }}" 
+                value="{{ item.result.feedback|default:'' }}"
+                placeholder="Izoh qoldiring..."
+                class="w-full bg-[#1a1c23] border border-gray-600 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-mint transition">
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex justify-end mb-10">
+      <button type="submit" class="bg-mint text-green-900 font-black px-10 py-4 rounded-xl shadow-xl hover:bg-[#00cc88] transition transform active:scale-95">
+        <i class="fa-solid fa-check-double mr-2"></i>NATIJALARNI SAQLASH
+      </button>
+    </div>
+    
+  </form>
+
+</body>
+</html>

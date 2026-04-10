@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Vazifalar Ro'yxati - LMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #1a1c23; color: #e2e8f0; font-family: Inter, sans-serif; }
+    .card-bg { background-color: #252830; }
+    .badge-bg { background-color: #1a1c23; }
+    .text-mint { color: #00e699; }
+    .bg-mint { background-color: #00e699; }
+    .bg-mint-soft { background-color: #e6fffa; color: #047857; }
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="min-h-screen flex flex-col p-6">
+
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-4 border-b border-gray-700">
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-1">Uy vazifalari</h1>
+      <p class="text-gray-400 text-sm">{{ group.name }} — Topshirilgan vazifalar nazorati</p>
+    </div>
+    <div>
+      <a href="/dashboard/" class="text-gray-400 hover:text-white transition text-sm font-medium">
+        <i class="fa-solid fa-arrow-left mr-2"></i>Dashboardga qaytish
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}
+    <div class="mb-6">
+      {% for msg in messages %}
+         <div class="bg-mint-soft px-4 py-3 rounded-xl text-sm shadow animate-bounce">
+            <i class="fa-solid fa-circle-check mr-2"></i> {{ msg }}
+         </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="card-bg rounded-2xl border border-gray-700 shadow-xl overflow-hidden">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-[#1a1c23] border-b border-gray-700">
+          <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Talaba</th>
+          <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Dars / Vazifa</th>
+          <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Sana</th>
+          <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Holat</th>
+          <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Baho</th>
+          <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Amallar</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-700/50">
+        {% for sub in submissions %}
+        <tr class="hover:bg-white/5 transition">
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-800 text-xs">
+                {{ sub.student.first_name|first|upper }}
+              </div>
+              <span class="text-white font-bold text-sm">{{ sub.student.get_full_name|default:sub.student.username }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4">
+            <p class="text-white text-sm font-medium">{{ sub.lesson.title }}</p>
+            <p class="text-gray-500 text-[10px] uppercase tracking-tighter">Dars #{{ sub.lesson.order }}</p>
+          </td>
+          <td class="px-6 py-4 text-center text-gray-400 text-xs">
+            {{ sub.submitted_at|date:"d.m.Y H:i" }}
+          </td>
+          <td class="px-6 py-4 text-center">
+            {% if sub.status == 'checked' %}
+              <span class="bg-green-500/10 text-green-400 text-[10px] font-black uppercase px-2 py-1 rounded border border-green-500/20">Tekshirildi</span>
+            {% else %}
+              <span class="bg-yellow-500/10 text-yellow-500 text-[10px] font-black uppercase px-2 py-1 rounded border border-yellow-500/20">Kutilmoqda</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-center">
+            {% if sub.grade %}
+              <span class="text-mint font-black text-lg">{{ sub.grade }}</span>
+            {% else %}
+              <span class="text-gray-600">—</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-right">
+            <div class="flex justify-end gap-3">
+              {% if sub.file %}
+              <a href="{{ sub.file.url }}" target="_blank" class="text-gray-400 hover:text-white transition" title="Faylni ko'rish">
+                <i class="fa-solid fa-file-arrow-down"></i>
+              </a>
+              {% endif %}
+              <a href="{% url 'homework:grade' sub.id %}" class="text-mint hover:underline text-xs font-bold">
+                {% if sub.status == 'checked' %}Tahrirlash{% else %}Baholash{% endif %}
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="px-6 py-12 text-center text-gray-500 italic">
+            Hali hech qanday vazifa topshirilmagan.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>

@@ -1,35 +1,115 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="bg-white rounded shadow p-8 mb-6">
-    <h1 class="text-3xl font-bold mb-2">{{ lesson.title }}</h1>
-    <p class="text-sm text-gray-500 mb-6">Tur: {{ lesson.get_lesson_type_display }}</p>
-    
-    <div class="prose max-w-none mb-6">
-        {{ lesson.content }}
-    </div>
-    
-    {% if lesson.file %}
-        <div class="mb-6">
-            {% if lesson.lesson_type == 'video' %}
-                <video controls class="w-full max-w-3xl border rounded"><source src="{{ lesson.file.url }}" type="video/mp4"></video>
-            {% else %}
-                <a href="{{ lesson.file.url }}" target="_blank" class="text-blue-600 hover:underline">Faylni ochish / Yuklab olish</a>
-            {% endif %}
-        </div>
-    {% endif %}
-</div>
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ lesson.title }} - LMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #1a1c23; color: #e2e8f0; font-family: Inter, sans-serif; }
+    .card-bg { background-color: #252830; }
+    .badge-bg { background-color: #1a1c23; }
+    .text-mint { color: #00e699; }
+    .bg-mint { background-color: #00e699; }
+    .bg-mint-soft { background-color: #e6fffa; color: #047857; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="min-h-screen flex flex-col p-6">
 
-{% if request.user.role == 'student' %}
-<div class="bg-gray-100 rounded p-6 shadow-inner">
-    <h2 class="text-xl font-bold mb-4">Uy vazifasini yuborish</h2>
-    <form action="{% url 'homework:submit' lesson.id %}" method="POST" enctype="multipart/form-data">
+  <div class="max-w-4xl mx-auto w-full">
+    
+    <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-700">
+      <div class="flex items-center gap-4">
+        <a href="{% url 'courses:lesson_list' lesson.group.id %}" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white transition">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+          <h1 class="text-2xl font-bold text-white tracking-tight">{{ lesson.title }}</h1>
+          <p class="text-gray-400 text-xs">{{ lesson.group.name }} — {{ lesson.get_lesson_type_display }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="bg-mint/10 text-mint text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-mint/20">
+          Dars #{{ lesson.order }}
+        </span>
+      </div>
+    </div>
+
+    {% if messages %}
+      <div class="mb-6">
+        {% for msg in messages %}
+           <div class="bg-blue-900/30 border border-blue-700 text-blue-100 px-4 py-3 rounded-xl text-sm shadow">
+              <i class="fa-solid fa-circle-info mr-2"></i> {{ msg }}
+           </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Content Area -->
+    <div class="card-bg p-8 rounded-3xl border border-gray-700 shadow-2xl mb-8">
+      <div class="prose prose-invert max-w-none mb-10 text-gray-300 leading-relaxed">
+        {{ lesson.content|linebreaks }}
+      </div>
+      
+      {% if lesson.file %}
+        <div class="pt-6 border-t border-gray-700/50">
+          <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-paperclip text-mint"></i> Dars materiallari
+          </h3>
+          {% if lesson.lesson_type == 'video' %}
+            <div class="rounded-2xl overflow-hidden border border-gray-700 shadow-lg">
+              <video controls class="w-full">
+                <source src="{{ lesson.file.url }}" type="video/mp4">
+              </video>
+            </div>
+          {% else %}
+            <a href="{{ lesson.file.url }}" target="_blank" class="flex items-center justify-between bg-[#1a1c23] p-4 rounded-xl border border-gray-700 hover:border-mint transition group">
+              <div class="flex items-center gap-3">
+                <i class="fa-solid fa-file-lines text-2xl text-mint group-hover:scale-110 transition"></i>
+                <span class="text-gray-300 font-medium">Qo'shimcha materialni yuklab olish</span>
+              </div>
+              <i class="fa-solid fa-download text-gray-500 group-hover:text-mint"></i>
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Homework Section -->
+    {% if request.user.role == 'student' %}
+    <div class="bg-mint/5 p-8 rounded-3xl border border-mint/10 shadow-lg mb-10">
+      <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-cloud-arrow-up text-mint"></i> Uy vazifasini topshirish
+      </h2>
+      
+      <form action="{% url 'homework:submit' lesson.id %}" method="POST" enctype="multipart/form-data" class="space-y-4">
         {% csrf_token %}
-        <input type="file" name="file" required class="block w-full text-sm text-gray-500
-          file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
-          file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700
-          hover:file:bg-indigo-100 mb-4"/>
-        <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded font-bold hover:bg-indigo-700">Yuborish</button>
-    </form>
-</div>
-{% endif %}
-{% endblock %}
+        <div class="relative group">
+          <input type="file" name="file" required id="hwFile" class="hidden">
+          <label for="hwFile" class="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-700 rounded-2xl cursor-pointer hover:border-mint hover:bg-mint/5 transition group">
+            <i class="fa-solid fa-file-zipper text-4xl text-gray-600 mb-3 group-hover:text-mint group-hover:bounce"></i>
+            <span class="text-gray-400 group-hover:text-gray-200 font-medium" id="fileName">Faylni tanlang (ZIP, PDF, JPG)</span>
+          </label>
+        </div>
+        <button type="submit" class="w-full bg-mint text-green-900 font-black py-4 rounded-xl shadow-xl hover:bg-[#00cc88] transition transform active:scale-95">
+          VAZIFANI YUBORISH
+        </button>
+      </form>
+    </div>
+    <script>
+      document.getElementById('hwFile').addEventListener('change', function(e) {
+          if(e.target.files.length > 0) {
+              document.getElementById('fileName').textContent = e.target.files[0].name;
+              document.getElementById('fileName').classList.add('text-mint');
+          }
+      });
+    </script>
+    {% endif %}
+
+  </div>
+
+</body>
+</html>
