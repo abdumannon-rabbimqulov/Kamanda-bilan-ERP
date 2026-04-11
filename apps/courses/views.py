@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from apps.accounts.decorators import role_required
 from .models import Course, Group, Enrollment, Lesson
+from apps.homework.models import Homework
 
 def course_list(request):
     user = request.user
@@ -63,11 +64,19 @@ def add_lesson(request, group_id):
         title = request.POST.get('title', '').strip()
         lesson_type = request.POST.get('lesson_type')
         content = request.POST.get('content', '')
+        homework_task = request.POST.get('homework_task', '')
         file = request.FILES.get('file')
         if not title:
             return render(request, 'courses/add_lesson.html', {'group': group, 'error': 'Sarlavha majburiy'})
-        Lesson.objects.create(group=group, title=title, lesson_type=lesson_type, content=content, file=file)
-        messages.success(request, "Dars yaratildi")
+        Lesson.objects.create(
+            group=group, 
+            title=title, 
+            lesson_type=lesson_type, 
+            content=content, 
+            homework_task=homework_task, 
+            file=file
+        )
+        messages.success(request, "Dars muvaffaqiyatli yaratildi")
         return redirect('courses:lesson_list', group_id=group.id)
     return render(request, 'courses/add_lesson.html', {'group': group})
 
@@ -88,12 +97,22 @@ def start_lesson(request, lesson_id):
         messages.info(request, "Dars allaqachon boshlangan.")
         return redirect('dashboard:teacher')
     
-    # Check if lesson is scheduled for today or past
-    if lesson.date > timezone.now().date():
-        messages.error(request, "Kelajakdagi darsni hozirdan boshlab bo'lmaydi.")
+    if request.method == 'POST':
+        now = timezone.localtime()
+        # Combine date and time, make it aware
+        scheduled_datetime = timezone.make_aware(datetime.combine(lesson.date, lesson.group.lesson_start_time))
+        
+        if scheduled_datetime > now:
+            messages.error(request, f"Darsni faqat dars vaqtida ({lesson.group.lesson_start_time}) boshlash mumkin.")
+            return render(request, 'courses/start_lesson.html', {'lesson': lesson})
+            
+        new_title = request.POST.get('title', '').strip()
+        if new_title:
+            lesson.title = new_title
+            
+        lesson.started_at = timezone.now()
+        lesson.save()
+        messages.success(request, f"'{lesson.title}' darsi muvaffaqiyatli boshlandi.")
         return redirect('dashboard:teacher')
-    
-    lesson.started_at = timezone.now()
-    lesson.save()
-    messages.success(request, f"{lesson.title} muvaffaqiyatli boshlandi.")
-    return redirect('dashboard:teacher')
+        
+    return render(request, 'courses/start_lesson.html', {'lesson': lesson})

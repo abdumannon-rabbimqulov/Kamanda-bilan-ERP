@@ -1,29 +1,102 @@
-{% extends 'base.html' %}
-{% block content %}
-<h1 class="text-2xl font-bold mb-4">Yang dars qo'shish ({{ group.name }})</h1>
-{% if error %}<div class="bg-red-100 text-red-700 p-3 mb-4">{{ error }}</div>{% endif %}
-<form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded shadow max-w-2xl">
-    {% csrf_token %}
-    <div class="mb-4">
-        <label class="block font-medium mb-1">Mavzu</label>
-        <input type="text" name="title" required class="w-full border rounded p-2 focus:ring">
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Yangi Dars Qo'shish | LMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --mint: #00e699; --bg-dark: #0f1115; }
+    body { background: var(--bg-dark); color: #e2e8f0; font-family: 'Outfit', sans-serif; }
+    .glass-card { 
+      background: rgba(30, 32, 40, 0.7); 
+      backdrop-filter: blur(12px); 
+      border: 1px solid rgba(255,255,255,0.05); 
+    }
+    .text-mint { color: var(--mint); }
+    .bg-mint { background-color: var(--mint); }
+    .focus-mint:focus { border-color: var(--mint); ring-color: var(--mint); }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+
+  <div class="max-w-2xl w-full">
+    <div class="flex items-center gap-4 mb-8">
+      <a href="{% url 'courses:lesson_list' group.id %}" class="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white transition">
+        <i class="fa-solid fa-arrow-left"></i>
+      </a>
+      <div>
+        <h1 class="text-3xl font-black text-white tracking-tight">Yangi Dars Qo'shish</h1>
+        <p class="text-gray-500 text-sm">{{ group.name }} guruhi uchun</p>
+      </div>
     </div>
-    <div class="mb-4">
-        <label class="block font-medium mb-1">Dars turi</label>
-        <select name="lesson_type" class="w-full border rounded p-2 focus:ring">
-            <option value="video">Video</option>
-            <option value="pdf">PDF</option>
-            <option value="text">Matn</option>
-        </select>
+
+    {% if error %}
+    <div class="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-2xl mb-6 flex items-center gap-3">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <p class="text-sm font-bold">{{ error }}</p>
     </div>
-    <div class="mb-4">
-        <label class="block font-medium mb-1">Fayl (Video yoki PDF)</label>
-        <input type="file" name="file" class="w-full border rounded p-2">
-    </div>
-    <div class="mb-4">
-        <label class="block font-medium mb-1">Matn (yoki qo'shimcha ma'lumot)</label>
-        <textarea name="content" rows="4" class="w-full border rounded p-2 focus:ring"></textarea>
-    </div>
-    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">Saqlash</button>
-</form>
-{% endblock %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="glass-card p-8 rounded-3xl space-y-6">
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Dars Mavzusi</label>
+          <input type="text" name="title" required placeholder="Masalan: Python Kirish" 
+                 class="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-mint transition">
+        </div>
+        <div class="space-y-2">
+          <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Dars Turi</label>
+          <select name="lesson_type" class="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-mint transition appearance-none">
+            <option value="video">Video Dars</option>
+            <option value="pdf">PDF Material</option>
+            <option value="text">Matnli Dars</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Dars Materiali (Fayl)</label>
+        <div class="relative group">
+          <input type="file" name="file" id="lessonFile" class="hidden">
+          <label for="lessonFile" class="w-full flex items-center gap-4 p-5 border border-dashed border-gray-700 rounded-2xl cursor-pointer hover:border-mint hover:bg-mint/5 transition group bg-black/20">
+            <div class="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center text-gray-500 group-hover:text-mint transition">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <span class="text-gray-400 group-hover:text-gray-200 text-sm font-medium truncate" id="fileName">Faylni tanlang yoki shu yerga tashlang</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Dars Mazmuni</label>
+        <textarea name="content" rows="4" placeholder="Dars haqida batafsil ma'lumot qoldiring..." 
+                  class="w-full bg-black/40 border border-white/5 rounded-2xl p-6 text-white focus:outline-none focus:border-mint transition resize-none"></textarea>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-[10px] font-black uppercase tracking-widest text-mint ml-1">Uyga Vazifa (Topshiriq)</label>
+        <textarea name="homework_task" rows="3" placeholder="O'quvchilar ushbu darsdan so'ng qanday vazifa bajarishi kerak?" 
+                  class="w-full bg-mint/5 border border-mint/20 rounded-2xl p-6 text-white focus:outline-none focus:border-mint transition resize-none"></textarea>
+      </div>
+
+      <button type="submit" class="w-full bg-mint text-black font-black py-4 rounded-2xl shadow-[0_0_20px_rgba(0,230,153,0.3)] hover:shadow-[0_0_30px_rgba(0,230,153,0.5)] transition transform active:scale-95 uppercase tracking-widest text-xs">
+        Darsni Saqlash
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('lessonFile').addEventListener('change', function(e) {
+        if(e.target.files.length > 0) {
+            document.getElementById('fileName').textContent = e.target.files[0].name;
+            document.getElementById('fileName').classList.add('text-mint');
+        }
+    });
+  </script>
+</body>
+</html>

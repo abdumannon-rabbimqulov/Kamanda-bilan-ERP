@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import F
+from django.db.models import F, ProtectedError
 from django.contrib.auth.decorators import login_required
 from apps.accounts.decorators import role_required
 from apps.courses.models import Course, Enrollment

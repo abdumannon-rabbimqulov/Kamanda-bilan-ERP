@@ -54,6 +54,9 @@ def chat_direct(request, user_id):
         msg_type='direct'
     ).order_by('created_at')
     
+    # Mark as read
+    Message.objects.filter(sender=other, receiver=me, is_read=False).update(is_read=True)
+    
     groups, contacts = get_chat_context(me)
 
     return render(request, 'chat/room.html', {
@@ -81,6 +84,10 @@ def chat_group(request, group_id):
         return redirect('chat:list')
 
     history = Message.objects.filter(group=group, msg_type='group').order_by('created_at')
+    
+    # Mark group messages as read (excluding those sent by self)
+    Message.objects.filter(group=group, is_read=False).exclude(sender=me).update(is_read=True)
+    
     groups, contacts = get_chat_context(me)
 
     return render(request, 'chat/room.html', {

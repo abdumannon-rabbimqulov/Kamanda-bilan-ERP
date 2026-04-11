@@ -68,6 +68,7 @@ class Lesson(models.Model):
     lesson_type = models.CharField(max_length=10, choices=TYPES, default='text')
     file = models.FileField(upload_to='lessons/', blank=True, null=True)
     content = models.TextField(blank=True)
+    homework_task = models.TextField(blank=True, null=True, verbose_name="Uyga vazifa")
     date = models.DateField(null=True, blank=True)
     started_at = models.DateTimeField(null=True, blank=True)
     order = models.IntegerField(default=0)
