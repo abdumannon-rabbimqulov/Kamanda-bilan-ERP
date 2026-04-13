@@ -10,3 +10,7 @@ qrcode>=7.4.2
 Pillow>=10.0.0
 daphne>=4.0.0
 python-dotenv>=1.0.0
+# akromoffabbos@gmail.com student login
+# abbosbeksika@gmail.com yordamchi oqituvchi login
+# rabbimqulovabdumannon56@gmail.com teacher login
+# admin login

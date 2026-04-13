@@ -20,7 +20,7 @@ class Group(models.Model):
         ('5_days','Haftada 5 kun'),
         ('daily','Har kuni')
     ]
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     course = models.ForeignKey(Course, on_delete=models.PROTECT)
     teacher = models.ForeignKey(User, on_delete=models.PROTECT, related_name='groups_taught')
     assistant = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='groups_assisted')
@@ -69,7 +69,10 @@ class Lesson(models.Model):
     file = models.FileField(upload_to='lessons/', blank=True, null=True)
     content = models.TextField(blank=True)
     homework_task = models.TextField(blank=True, null=True, verbose_name="Uyga vazifa")
+    homework_video = models.FileField(upload_to='lessons/homework/videos/', null=True, blank=True)
+    homework_image = models.ImageField(upload_to='lessons/homework/images/', null=True, blank=True)
     date = models.DateField(null=True, blank=True)
     started_at = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
     order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)

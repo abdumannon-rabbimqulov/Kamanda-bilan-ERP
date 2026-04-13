@@ -9,8 +9,6 @@ from apps.accounts.decorators import role_required
 def attendance_list(request, group_id):
     group = get_object_or_404(Group, id=group_id)
     enrollments = Enrollment.objects.filter(group=group, status='approved').select_related('student')
-    
-    # 1. Lesson Date-wise Records (for the history table)
     records = Attendance.objects.filter(group=group).order_by('-date')
     dates = Attendance.objects.filter(group=group).values_list('date', flat=True).distinct().order_by('-date')
     
@@ -26,7 +24,6 @@ def attendance_list(request, group_id):
             'counts': counts
         })
 
-    # 2. Student-wise Statistics (for the summary table)
     student_stats = []
     total_dates = dates.count()
     for enr in enrollments:
@@ -35,8 +32,7 @@ def attendance_list(request, group_id):
         p_count = s_records.filter(status='present').count()
         a_count = s_records.filter(status='absent').count()
         l_count = s_records.filter(status='late').count()
-        
-        # Percentage calculation (Present + Late count as presence)
+
         total_p = p_count + l_count
         percent = int((total_p / total_dates) * 100) if total_dates > 0 else 0
         
@@ -61,18 +57,14 @@ def mark_attendance(request, group_id):
     group = get_object_or_404(Group, id=group_id)
     enrollments = Enrollment.objects.filter(group=group, status='approved').select_related('student')
     
-    # Selecting date (already read-only for teachers in UI)
     date_str = request.GET.get('date', str(timezone.now().date()))
     today = timezone.now().date()
     
-    # ══ MAXIMAL SECURITY: Teacher can only mark if lesson started TODAY ══
     if request.user.role in ['teacher', 'assistant']:
-        # If trying to mark for a date other than today, block it
         if date_str != str(today):
             messages.error(request, "Ustozlar faqat bugungi dars uchun davomat qila oladilar.")
             return redirect('attendance:list', group_id=group.id)
             
-        # Check if any lesson for this group was started today
         lesson_started = Lesson.objects.filter(group=group, date=today, started_at__isnull=False).exists()
         if not lesson_started:
             messages.error(request, "Davomat qilishdan oldin darsni boshlashingiz kerak.")
@@ -90,7 +82,6 @@ def mark_attendance(request, group_id):
         messages.success(request, f"{date_str} sanasidagi davomat saqlandi")
         return redirect('attendance:list', group_id=group.id)
         
-    # Pre-fetch existing statuses for this date
     existing_records = Attendance.objects.filter(group=group, date=date_str)
     status_map = {r.student_id: r.status for r in existing_records}
     

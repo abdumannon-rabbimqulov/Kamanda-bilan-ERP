@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from apps.accounts.models import User
 
+
 def login_view(request):
     if request.method == 'POST':
         login_input = request.POST.get('login')

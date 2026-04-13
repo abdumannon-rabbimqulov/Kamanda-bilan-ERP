@@ -154,9 +154,15 @@
               <div class="flex items-center space-x-2">
                 {% if lesson.started_at %}
                   <div class="flex items-center space-x-2">
-                    <span class="bg-mint/10 text-mint text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg border border-mint/20 flex items-center">
-                      <i class="fa-solid fa-play mr-2 text-[8px]"></i>Boshlangan: {{ lesson.started_at|time:"H:i" }}
-                    </span>
+                    {% if not lesson.ended_at %}
+                      <a href="{% url 'courses:end_lesson' lesson.id %}" class="bg-red-500/10 text-red-500 text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg border border-red-500/20 flex items-center hover:bg-red-500 hover:text-white transition">
+                        <i class="fa-solid fa-stop-circle mr-2 text-[10px]"></i>Darsni Tugatish
+                      </a>
+                    {% else %}
+                      <span class="bg-gray-800 text-gray-400 text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg border border-gray-700 flex items-center">
+                        <i class="fa-solid fa-check-circle mr-2 text-[10px]"></i>Yakunlandi
+                      </span>
+                    {% endif %}
                     <a href="{% url 'attendance:mark' lesson.group.id %}" class="bg-gray-800 border border-gray-700 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-700 transition">
                       Davomat
                     </a>
@@ -198,6 +204,14 @@
               <div class="w-full h-1 bg-gray-800 rounded-full overflow-hidden mb-4">
                 <div class="h-full bg-mint shadow-[0_0_8px_rgba(0,230,153,0.4)] transition-all duration-500" style="width:{{ item.progress }}%"></div>
               </div>
+
+              {% if item.next_lesson %}
+              <div class="mb-3">
+                <a href="{% url 'courses:start_lesson' item.next_lesson.id %}" class="w-full flex items-center justify-center gap-2 bg-mint text-black py-2 rounded-xl text-xs font-bold hover:shadow-[0_0_15px_rgba(0,230,153,0.4)] transition uppercase tracking-wider">
+                  <i class="fa-solid fa-play"></i> Darsni Boshlash ({{ item.next_lesson.order }}-dars)
+                </a>
+              </div>
+              {% endif %}
 
               <div class="flex space-x-2">
                 <a href="javascript:void(0)" onclick="showPreview('{% url 'dashboard:group_preview' item.group.id %}', '{{ item.group.name }} — Jadval')" class="flex-1 bg-mint/10 text-mint py-1.5 rounded-lg text-[9px] font-bold uppercase text-center hover:bg-mint/20">Jadval</a>

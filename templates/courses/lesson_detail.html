@@ -79,14 +79,33 @@
     </div>
 
     <!-- Assigned Homework Task -->
-    {% if lesson.homework_task %}
+    {% if lesson.homework_task or lesson.homework_video or lesson.homework_image %}
     <div class="bg-mint/5 border border-mint/20 p-8 rounded-3xl mb-8 relative overflow-hidden group">
       <div class="absolute -right-6 -top-6 w-24 h-24 bg-mint/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
       <h3 class="text-mint font-black text-xs uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
         <i class="fa-solid fa-thumbtack"></i> Bajarish kerak bo'lgan vazifa
       </h3>
-      <div class="text-gray-200 leading-relaxed font-medium">
+      
+      {% if lesson.homework_task %}
+      <div class="text-gray-200 leading-relaxed font-medium mb-6">
         {{ lesson.homework_task|linebreaks }}
+      </div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% if lesson.homework_video %}
+        <div class="rounded-xl overflow-hidden border border-gray-700 bg-black">
+          <video controls class="w-full max-h-60">
+            <source src="{{ lesson.homework_video.url }}" type="video/mp4">
+          </video>
+        </div>
+        {% endif %}
+
+        {% if lesson.homework_image %}
+        <div class="rounded-xl overflow-hidden border border-gray-700">
+          <img src="{{ lesson.homework_image.url }}" alt="Homework Image" class="w-full h-auto cursor-pointer" onclick="window.open(this.src)">
+        </div>
+        {% endif %}
       </div>
     </div>
     {% endif %}

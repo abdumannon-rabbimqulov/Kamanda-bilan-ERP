@@ -116,3 +116,28 @@ def start_lesson(request, lesson_id):
         return redirect('dashboard:teacher')
         
     return render(request, 'courses/start_lesson.html', {'lesson': lesson})
+@role_required('teacher', 'admin')
+def end_lesson(request, lesson_id):
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    if not lesson.started_at:
+        messages.error(request, "Dars hali boshlanmagan.")
+        return redirect('dashboard:teacher')
+    
+    if request.method == 'POST':
+        homework_task = request.POST.get('homework_task', '').strip()
+        homework_video = request.FILES.get('homework_video')
+        homework_image = request.FILES.get('homework_image')
+        
+        lesson.homework_task = homework_task
+        if homework_video:
+            lesson.homework_video = homework_video
+        if homework_image:
+            lesson.homework_image = homework_image
+            
+        lesson.ended_at = timezone.now()
+        lesson.save()
+        
+        messages.success(request, f"'{lesson.title}' muvaffaqiyatli yakunlandi va vazifa yuborildi.")
+        return redirect('dashboard:teacher')
+        
+    return render(request, 'courses/end_lesson.html', {'lesson': lesson})

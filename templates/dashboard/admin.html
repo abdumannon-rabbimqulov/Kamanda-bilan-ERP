@@ -340,13 +340,26 @@
                  <button onclick="document.getElementById('courseModal').style.display='flex'" class="bg-[#252830] text-mint hover:text-white border border-mint/50 px-4 py-2 rounded-lg text-sm font-bold transition">
                    + Yangi kurs qo'shish
                  </button>
-                 <button onclick="document.getElementById('groupModal').style.display='flex'" class="bg-[#252830] text-gray-300 hover:text-white border border-gray-600 px-4 py-2 rounded-lg text-sm font-bold transition">
+                 <button onclick="document.getElementById('groupModal').style.display='flex'" class="bg-mint text-black hover:bg-[#00cc88] px-4 py-2 rounded-lg text-sm font-bold transition shadow-lg">
                    + Yangi guruh ochish
                  </button>
                </div>
             </div>
-            
-            <div class="overflow-x-auto">
+
+            <!-- Kurslar Ro'yxati (Visual aid to avoid confusion) -->
+            <div class="mb-8 overflow-x-auto pb-2">
+                <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">Mavjud Kurslar</p>
+                <div class="flex space-x-3">
+                    {% for c in all_courses %}
+                    <div class="badge-bg px-4 py-2 rounded-xl border border-gray-700 flex items-center space-x-2 shrink-0">
+                        <i class="fa-solid fa-book text-mint text-xs"></i>
+                        <span class="text-white text-xs font-bold">{{ c.title }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-600 text-xs italic">Hech qanday kurs topilmadi.</p>
+                    {% endfor %}
+                </div>
+            </div>
                <table class="w-full text-left border-collapse">
                   <thead>
                      <tr class="border-b border-gray-600 text-gray-400 text-sm">
