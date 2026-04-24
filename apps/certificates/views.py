@@ -15,9 +15,18 @@ def issue_certificate(request):
         generate_certificate(student, course)
         messages.success(request, 'Sertifikat yaratildi, uni hozir yuklab olsangiz bo\'ladi.')
         return redirect('dashboard:admin')
+    
+    selected_student = request.GET.get('student')
+    selected_course = request.GET.get('course')
+    
     students = User.objects.filter(role='student')
     courses = Course.objects.filter(is_active=True)
-    return render(request, 'certificates/issue.html', {'students': students, 'courses': courses})
+    return render(request, 'certificates/issue.html', {
+        'students': students, 
+        'courses': courses,
+        'selected_student': selected_student,
+        'selected_course': selected_course
+    })
 
 @role_required('admin')
 def admin_certificate_list(request):

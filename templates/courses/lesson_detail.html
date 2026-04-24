@@ -154,7 +154,39 @@
               <p class="text-gray-400 text-xs mt-1">Siz ushbu kursni muvaffaqiyatli tugatgansiz. Yangi vazifalar yuborish imkoniyati yopiq, lekin darslarni ko'rishingiz mumkin.</p>
             </div>
           </div>
+        {% elif deadline_passed %}
+          <div class="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500 text-xl">
+              <i class="fa-solid fa-calendar-xmark"></i>
+            </div>
+            <div>
+              <p class="text-white font-bold text-sm">Vaqt tugadi</p>
+              <p class="text-gray-400 text-xs mt-1">Ushbu dars boshlanganidan beri 10 kundan ko'p vaqt o'tdi. Vazifa topshirish muddati yakunlangan.</p>
+            </div>
+          </div>
+        {% elif user_homework and edit_disabled %}
+          <div class="bg-blue-500/10 border border-blue-500/20 p-6 rounded-2xl flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 text-xl">
+              <i class="fa-solid fa-check-double"></i>
+            </div>
+            <div>
+              <p class="text-white font-bold text-sm">Vazifa topshirilgan</p>
+              <p class="text-gray-400 text-xs mt-1">Vazifani tahrirlash uchun berilgan 2 kunlik muddat tugagan. Endi uni o'zgartirib bo'lmaydi.</p>
+            </div>
+          </div>
         {% else %}
+          <div class="mb-4">
+             {% if edit_disabled %}
+                <p class="text-amber-400 text-[10px] font-bold uppercase tracking-widest bg-amber-900/20 px-3 py-1 rounded border border-amber-500/30 inline-block">
+                   <i class="fa-solid fa-circle-exclamation mr-1"></i> Bonus muddati tugagan (2 kundan oshdi)
+                </p>
+             {% else %}
+                <p class="text-mint text-[10px] font-bold uppercase tracking-widest bg-mint/10 px-3 py-1 rounded border border-mint/30 inline-block">
+                   <i class="fa-solid fa-bolt mr-1"></i> Bonus olish imkoniyati mavjud (2 kun ichida)
+                </p>
+             {% endif %}
+          </div>
+          
           <form action="{% url 'homework:submit' lesson.id %}" method="POST" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
             

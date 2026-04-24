@@ -54,9 +54,9 @@
                     <label class="block text-gray-300 text-sm font-medium mb-2">O'quvchini tanlang</label>
                     <div class="relative">
                         <select name="student_id" required class="w-full border border-gray-600 rounded-xl px-4 py-3.5 focus:outline-none focus:border-mint transition shadow-inner">
-                            <option value="" disabled selected>-- Ro'yxatdan o'quvchini tanlang --</option>
+                            <option value="" disabled {% if not selected_student %}selected{% endif %}>-- Ro'yxatdan o'quvchini tanlang --</option>
                             {% for st in students %}
-                            <option value="{{ st.id }}">{{ st.get_full_name|default:st.username }} ({{ st.email }})</option>
+                            <option value="{{ st.id }}" {% if selected_student|add:0 == st.id %}selected{% endif %}>{{ st.get_full_name|default:st.username }} ({{ st.email }})</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -66,9 +66,9 @@
                     <label class="block text-gray-300 text-sm font-medium mb-2">Kursni tanlang</label>
                     <div class="relative">
                         <select name="course_id" required class="w-full border border-gray-600 rounded-xl px-4 py-3.5 focus:outline-none focus:border-mint transition shadow-inner">
-                            <option value="" disabled selected>-- Baholanayotgan kursni tanlang --</option>
+                            <option value="" disabled {% if not selected_course %}selected{% endif %}>-- Baholanayotgan kursni tanlang --</option>
                             {% for cr in courses %}
-                            <option value="{{ cr.id }}">{{ cr.title }}</option>
+                            <option value="{{ cr.id }}" {% if selected_course|add:0 == cr.id %}selected{% endif %}>{{ cr.title }}</option>
                             {% endfor %}
                         </select>
                     </div>

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'apps.notifications',
     'apps.complaints',
     'apps.payments',
+    'apps.rewards',
     'django.contrib.humanize',
 ]
 

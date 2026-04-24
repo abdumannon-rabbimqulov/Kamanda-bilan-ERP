@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto mb-20 animate-fade-in">
+    
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tight">Market Boshqaruvi</h1>
+            <p class="text-gray-400 mt-2">Sovg'alar va buyurtmalarni boshqarish</p>
+        </div>
+        <button onclick="document.getElementById('addItemModal').style.display='flex'" 
+                class="bg-mint text-green-900 font-extrabold px-8 py-4 rounded-2xl hover:bg-[#00cc88] transition shadow-xl flex items-center gap-2 uppercase tracking-widest text-sm">
+            <i class="fa-solid fa-plus-circle text-lg"></i> Yangi buyum qo'shish
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Items List -->
+        <div class="lg:col-span-2 space-y-8">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-boxes-stacked text-mint"></i> Mavjud buyumlar
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {% for item in items %}
+                <div class="card-bg p-5 rounded-3xl border border-gray-700 flex gap-4 relative overflow-hidden group">
+                    <div class="w-24 h-24 shrink-0 bg-[#1a1c23] rounded-2xl border border-gray-700 overflow-hidden p-2">
+                        {% if item.image %}
+                            <img src="{{ item.image.url }}" class="w-full h-full object-contain">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-700">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 flex flex-col">
+                        <div class="flex justify-between items-start">
+                            <h4 class="text-white font-bold leading-tight">{{ item.name }}</h4>
+                            <span class="bg-yellow-500/10 text-yellow-500 text-[10px] font-black px-2 py-0.5 rounded border border-yellow-500/20">{{ item.coin_price|intcomma }} <i class="fa-solid fa-coins"></i></span>
+                        </div>
+                        <p class="text-gray-500 text-[10px] mt-1">Soni: <strong class="text-white">{{ item.stock_quantity }} ta</strong></p>
+                        
+                        <div class="mt-auto flex gap-2">
+                            <button class="text-gray-500 hover:text-white text-xs transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="text-gray-500 hover:text-red-500 text-xs transition"><i class="fa-solid fa-trash"></i></button>
+                            <span class="ml-auto text-[8px] font-bold uppercase tracking-widest {% if item.is_active %}text-mint{% else %}text-red-500{% endif %}">
+                                {% if item.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 col-span-full py-10 text-center bg-[#252830] rounded-2xl border border-gray-700 border-dashed">Buyumlar mavjud emas.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Redemptions -->
+        <div class="space-y-8">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-receipt text-blue-400"></i> Oxirgi buyurtmalar
+            </h2>
+            <div class="space-y-4">
+                {% for r in redemptions %}
+                <div class="card-bg p-5 rounded-3xl border border-gray-700 shadow-lg relative overflow-hidden group">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center font-bold text-white text-xs">
+                            {{ r.student.first_name|first|default:r.student.username|first|upper }}
+                        </div>
+                        <div>
+                            <h4 class="text-white font-bold text-sm">{{ r.student.get_full_name|default:r.student.username }}</h4>
+                            <p class="text-gray-500 text-[10px]">{{ r.created_at|date:"d.m.Y H:i" }}</p>
+                        </div>
+                    </div>
+                    <div class="bg-[#1a1c23] p-3 rounded-2xl border border-gray-700 mb-4 flex justify-between items-center">
+                        <span class="text-gray-300 text-xs">{{ r.item.name }}</span>
+                        <span class="text-yellow-500 font-bold text-xs">{{ r.coins_spent }} <i class="fa-solid fa-coins"></i></span>
+                    </div>
+                    
+                    <form action="{% url 'rewards:update_status' r.id %}" method="POST" class="flex gap-2">
+                        {% csrf_token %}
+                        <select name="status" class="flex-1 bg-[#1a1c23] border border-gray-700 text-gray-300 text-[10px] rounded-lg px-2 py-2 outline-none focus:border-mint transition">
+                            {% for code, label in r.STATUS %}
+                                <option value="{{ code }}" {% if r.status == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-xs transition"><i class="fa-solid fa-check"></i></button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 py-10 text-center bg-[#252830] rounded-2xl border border-gray-700 border-dashed text-xs">Buyurtmalar yo'q.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Add Item Modal -->
+<div id="addItemModal" class="fixed inset-0 bg-black/80 z-[1000] hidden items-center justify-center p-4 backdrop-blur-md">
+    <div class="bg-[#252830] w-full max-w-lg rounded-3xl border border-gray-700 shadow-2xl overflow-hidden animate-slide-up">
+        <div class="bg-mint p-6 flex justify-between items-center">
+            <h3 class="text-green-900 font-black text-xl uppercase tracking-widest">Yangi Buyum Qo'shish</h3>
+            <button onclick="document.getElementById('addItemModal').style.display='none'" class="text-green-900/50 hover:text-green-900 text-2xl">×</button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="add_item" value="1">
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2 ml-1">Nomi</label>
+                    <input type="text" name="name" required class="w-full bg-[#1a1c23] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-mint transition">
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2 ml-1">Narxi (Coin)</label>
+                    <input type="number" name="price" required class="w-full bg-[#1a1c23] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-mint transition">
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2 ml-1">Soni (Stock)</label>
+                    <input type="number" name="stock" required class="w-full bg-[#1a1c23] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-mint transition">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2 ml-1">Tavsif</label>
+                <textarea name="desc" rows="3" class="w-full bg-[#1a1c23] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-mint transition resize-none"></textarea>
+            </div>
+            
+            <div>
+                <label class="block text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2 ml-1">Rasm yuklash</label>
+                <input type="file" name="image" required class="w-full bg-[#1a1c23] border border-gray-700 rounded-xl px-4 py-3 text-gray-400 file:bg-gray-800 file:border-0 file:text-mint file:mr-4 file:px-4 file:py-1 file:rounded-lg file:text-xs">
+            </div>
+
+            <button type="submit" class="w-full bg-mint text-green-900 font-black py-4 rounded-2xl hover:bg-[#00cc88] transition shadow-lg uppercase tracking-[0.2em] text-sm">
+                SAQLASH VA QO'SHISH
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('addItemModal').addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
+</script>
+{% endblock %}

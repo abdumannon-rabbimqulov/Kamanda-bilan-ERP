@@ -117,7 +117,7 @@ def student_dashboard(request):
     
     if active_enrollment:
         g = active_enrollment.group
-        total_lessons = Lesson.objects.filter(group=g).count()
+        total_lessons = Lesson.objects.filter(group=g, started_at__isnull=False).count()
         completed_lessons = Attendance.objects.filter(student=request.user, group=g, status='present').count()
         
         # Avoid division by zero
@@ -129,7 +129,7 @@ def student_dashboard(request):
         total_exams = Exam.objects.filter(group=g).count()
         completed_exams = ExamResult.objects.filter(student=request.user, exam__group=g).count()
         
-        recent_lessons = Lesson.objects.filter(group=g).order_by('-order')[:2]
+        recent_lessons = Lesson.objects.filter(group=g, started_at__isnull=False).order_by('-order')[:2]
         
         # Add homework status to recent lessons
         user_homeworks = {h.lesson_id: h for h in Homework.objects.filter(student=request.user, lesson__in=recent_lessons)}
@@ -319,17 +319,23 @@ def admin_dashboard(request):
 
         # 2. Handle User Creation
         elif 'create_user' in request.POST:
+            username = request.POST.get('username', '').strip()
             email = request.POST.get('email', '').strip()
             role = request.POST.get('role', 'student')
             password = request.POST.get('password', '')
             
-            if User.objects.filter(email=email).exists():
+            if not username:
+                username = email # Fallback to email if username not provided
+                
+            if User.objects.filter(username=username).exists():
+                messages.error(request, "Bu username allaqachon mavjud!")
+            elif email and User.objects.filter(email=email).exists():
                 messages.error(request, "Bu email allaqachon mavjud!")
-            elif not email or not password:
-                messages.error(request, "Email va parol kiritish majburiy!")
+            elif not username or not password:
+                messages.error(request, "Username va parol kiritish majburiy!")
             else:
-                User.objects.create_user(username=email, email=email, password=password, role=role, is_active=True)
-                messages.success(request, f"Yangi foydalanuvchi ({role}) qo'shildi!")
+                User.objects.create_user(username=username, email=email, password=password, role=role, is_active=True)
+                messages.success(request, f"Yangi foydalanuvchi ({role}) qo'shildi! Username: {username}")
                 return redirect('dashboard:admin')
                 
         # Handle Course Creation
@@ -589,13 +595,21 @@ def update_user(request, user_id):
         user.role       = request.POST.get('role', user.role)
         user.is_active  = request.POST.get('is_active') == '1'
 
+        new_username = request.POST.get('username', '').strip()
+        if new_username and new_username != user.username:
+            if User.objects.filter(username=new_username).exclude(id=user.id).exists():
+                messages.error(request, 'Bu username boshqa foydalanuvchiga tegishli!')
+                return redirect('dashboard:admin')
+            user.username = new_username
+
         new_email = request.POST.get('email', '').strip()
         if new_email and new_email != user.email:
             if User.objects.filter(email=new_email).exclude(id=user.id).exists():
                 messages.error(request, 'Bu email boshqa foydalanuvchiga tegishli!')
                 return redirect('dashboard:admin')
-            user.email    = new_email
-            user.username = new_email
+            user.email = new_email
+
+        new_pass = request.POST.get('password', '').strip()
 
         new_pass = request.POST.get('password', '').strip()
         if new_pass:
@@ -792,14 +806,20 @@ def profile_settings(request):
             user.last_name = request.POST.get('last_name', user.last_name).strip()
             user.bio = request.POST.get('bio', user.bio).strip()
             
-            # Username va Email (Ehtiyot bo'lamiz, email unikal bo'lishi kerak)
+            # Username va Email
+            new_username = request.POST.get('username', '').strip()
+            if new_username and new_username != user.username:
+                if User.objects.filter(username=new_username).exclude(id=user.id).exists():
+                    messages.error(request, 'Bu username allaqachon band. Boshqa kiriting.')
+                    return redirect('auth:profile')
+                user.username = new_username
+
             new_email = request.POST.get('email', '').strip()
             if new_email and new_email != user.email:
                 if User.objects.filter(email=new_email).exclude(id=user.id).exists():
-                    messages.error(request, 'Bu elektron pochta (login) allaqachon band. Boshqa kirikting.')
+                    messages.error(request, 'Bu elektron pochta allaqachon band. Boshqa kiriting.')
                     return redirect('auth:profile')
                 user.email = new_email
-                user.username = new_email # Username email bilan bir xil ishlatiladi
 
             user.save()
             messages.success(request, "Profilingiz muvaffaqiyatli saqlandi!")
@@ -856,12 +876,23 @@ def public_profile(request, user_id):
 @role_required('admin', 'teacher', 'assistant')
 def graduated_students_list(request):
     """Kursni muvaffaqiyatli tugatgan o'quvchilar ro'yxati"""
+    from apps.certificates.models import Certificate
     graduates = Enrollment.objects.filter(status='completed').select_related('student', 'group__course').order_by('-enrolled_at')
     
     # Guruh bo'yicha qidirish imkoniyati
     group_id = request.GET.get('group')
     if group_id:
         graduates = graduates.filter(group_id=group_id)
+    
+    # Sertifikatlarni bir martada olamiz (N+1 muammosini oldini olish uchun)
+    student_ids = [enr.student_id for enr in graduates]
+    course_ids = [enr.group.course_id for enr in graduates]
+    
+    certs = Certificate.objects.filter(student_id__in=student_ids, course_id__in=course_ids)
+    cert_dict = {(c.student_id, c.course_id): c for c in certs}
+    
+    for enr in graduates:
+        enr.certificate = cert_dict.get((enr.student_id, enr.group.course_id))
         
     return render(request, 'dashboard/graduated_students.html', {
         'graduates': graduates,

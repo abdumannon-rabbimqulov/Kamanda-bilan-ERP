@@ -66,11 +66,19 @@
                         </td>
                         <td class="py-5 px-6 text-right">
                             <div class="flex items-center justify-end">
+                                {% if enr.certificate %}
+                                <a href="{% url 'certificates:verify' enr.certificate.verification_code %}" 
+                                   class="flex items-center space-x-2 bg-[#00e699]/10 border border-[#00e699]/30 hover:border-[#00e699] text-[#00e699] px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <span>Ko'rish</span>
+                                </a>
+                                {% else %}
                                 <a href="{% url 'certificates:issue' %}?student={{ enr.student.id }}&course={{ enr.group.course.id }}" 
                                    class="flex items-center space-x-2 bg-[#1a1c23] border border-gray-700 hover:border-mint text-gray-300 hover:text-mint px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm">
                                     <i class="fa-solid fa-award"></i>
-                                    <span>Ko'rish</span>
+                                    <span>Sertifikat berish</span>
                                 </a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

@@ -59,11 +59,17 @@
                     </div>
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Elektron Pochta (Login)</label>
-                    <input type="email" name="email" value="{{ profile.email }}" required class="w-full bg-[#1a1c23] border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-[#00e699] transition">
-                    <p class="text-[10px] text-gray-500 mt-2">Ushbu email orqali tizimga kirasiz. O'zgartirsangiz keyingi safar yangi email orqali kirishingiz kerak bo'ladi.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Username (Login)</label>
+                        <input type="text" name="username" value="{{ profile.username }}" required class="w-full bg-[#1a1c23] border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-[#00e699] transition">
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Elektron Pochta</label>
+                        <input type="email" name="email" value="{{ profile.email }}" class="w-full bg-[#1a1c23] border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-[#00e699] transition">
+                    </div>
                 </div>
+                <p class="text-[10px] text-gray-500 mb-6">Ushbu Username orqali tizimga kirasiz. Uni o'zgartirsangiz keyingi safar yangi nomi bilan kirishingiz kerak bo'ladi.</p>
                 
                 <div class="mb-8">
                     <label class="block text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Qisqacha Bio (O'zingiz haqingizda)</label>

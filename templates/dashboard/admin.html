@@ -121,6 +121,10 @@
           <i class="fa-solid fa-graduation-cap"></i>
           <span>Bitiruvchilar</span>
         </a>
+        <a href="{% url 'rewards:admin_list' %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+          <i class="fa-solid fa-store"></i>
+          <span>Market (Bonuslar)</span>
+        </a>
         
         <a href="{% url 'auth:logout' %}" class="flex items-center space-x-3 text-red-400 hover:text-red-300 hover:bg-[#252830] px-4 py-3 rounded-lg font-medium mt-12 transition">
           <i class="fa-solid fa-arrow-right-from-bracket"></i>
@@ -308,7 +312,7 @@
                         <td class="py-4 px-4 text-center">
                            <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
                              <!-- Edit -->
-                             <button onclick="openEditUser(event, {{ u.id }}, '{{ u.first_name|escapejs }}', '{{ u.last_name|escapejs }}', '{{ u.email|escapejs }}', '{{ u.phone|escapejs }}', '{{ u.role }}', {{ u.is_active|yesno:'1,0' }})"
+                             <button onclick="openEditUser(event, {{ u.id }}, '{{ u.username|escapejs }}', '{{ u.first_name|escapejs }}', '{{ u.last_name|escapejs }}', '{{ u.email|escapejs }}', '{{ u.phone|escapejs }}', '{{ u.role }}', {{ u.is_active|yesno:'1,0' }})"
                                style="background:#252830;border:1px solid #374151;color:#9ca3af;padding:5px 10px;border-radius:7px;font-size:0.75rem;cursor:pointer;" title="Tahrirlash">
                                <i class="fa-solid fa-pen-to-square"></i>
                              </button>
@@ -578,7 +582,12 @@
               <input type="hidden" name="create_user" value="1">
               
               <div class="mb-4">
-                  <label class="block text-gray-300 text-sm font-medium mb-2">Pochta / Username (Email)</label>
+                  <label class="block text-gray-300 text-sm font-medium mb-2">Username</label>
+                  <input type="text" name="username" required placeholder="nomi" class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-mint transition">
+              </div>
+              
+              <div class="mb-4">
+                  <label class="block text-gray-300 text-sm font-medium mb-2">Pochta (Email)</label>
                   <input type="email" name="email" required placeholder="nom@maktab.uz" class="w-full bg-[#1a1c23] border border-gray-600 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-mint transition">
               </div>
               
@@ -722,9 +731,15 @@
               <input type="text" name="last_name" id="eu-last_name" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
             </div>
           </div>
-          <div style="margin-bottom:14px;">
-            <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Email</label>
-            <input type="email" name="email" id="eu-email" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div>
+              <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Username</label>
+              <input type="text" name="username" id="eu-username" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+            </div>
+            <div>
+              <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Email</label>
+              <input type="email" name="email" id="eu-email" style="width:100%;background:#0d0f14;border:1px solid #374151;color:#fff;padding:10px 14px;border-radius:9px;font-size:0.88rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00e699'" onblur="this.style.borderColor='#374151'">
+            </div>
           </div>
           <div style="margin-bottom:14px;">
             <label style="display:block;color:#9ca3af;font-size:0.7rem;text-transform:uppercase;margin-bottom:6px;font-weight:600;">Telefon</label>
@@ -762,9 +777,10 @@
 
   <script>
     // ─── Edit User Modal ───
-    function openEditUser(event, userId, firstName, lastName, email, phone, role, isActive) {
+    function openEditUser(event, userId, username, firstName, lastName, email, phone, role, isActive) {
       event.stopPropagation();
       document.getElementById('editUserForm').action = '/dashboard/user/' + userId + '/update/';
+      document.getElementById('eu-username').value = username;
       document.getElementById('eu-first_name').value = firstName;
       document.getElementById('eu-last_name').value  = lastName;
       document.getElementById('eu-email').value = email;

@@ -365,11 +365,14 @@
             connectWS();
 
             if (chatForm) {
-                chatForm.onsubmit = function(e) {
+                // Remove existing onsubmit if any to avoid confusion
+                chatForm.onsubmit = null;
+                chatForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     const msg = messageInput.value.trim();
                     if (!msg) return;
-                    if (chatSocket.readyState === WebSocket.OPEN) {
+                    
+                    if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
                         chatSocket.send(JSON.stringify({
                             'action': 'send',
                             'message': msg,
@@ -378,10 +381,14 @@
                         }));
                         messageInput.value = '';
                         messageInput.style.height = 'auto';
+                        messageInput.focus();
+                    } else if (chatSocket && chatSocket.readyState === WebSocket.CONNECTING) {
+                        alert("Ulanish amalga oshirilmoqda... Iltimos, biroz kutib qayta urinib ko'ring.");
                     } else {
-                        alert("Tarmoq bilan ulanish yo'q.");
+                        alert("Tarmoq bilan ulanish yo'q. Sahifani yangilang.");
+                        connectWS(); // Reconnect attempt
                     }
-                };
+                });
             }
         }
 
@@ -395,12 +402,12 @@
             div.innerHTML = `
                 <div class="max-w-[75%] md:max-w-[60%] flex flex-col ${isMe ? 'items-end' : ''}">
                     ${!isMe ? `
-                        <a href="/accounts/user/\${data.sender_id}/" class="flex items-center mb-1 ml-2 gap-1.5 opacity-80 hover:opacity-100 transition cursor-pointer group">
+                        <a href="/accounts/user/${data.sender_id}/" class="flex items-center mb-1 ml-2 gap-1.5 opacity-80 hover:opacity-100 transition cursor-pointer group">
                             ${data.sender_avatar ? 
-                                \`<img src="\${data.sender_avatar}" class="w-5 h-5 rounded-full object-cover border border-gray-600">\` : 
-                                \`<div class="w-5 h-5 rounded-full bg-gray-700 flex items-center justify-center text-[9px] text-white font-bold border border-gray-600">\${data.sender_initials}</div>\`
+                                `<img src="${data.sender_avatar}" class="w-5 h-5 rounded-full object-cover border border-gray-600">` : 
+                                `<div class="w-5 h-5 rounded-full bg-gray-700 flex items-center justify-center text-[9px] text-white font-bold border border-gray-600">${data.sender_initials}</div>`
                             }
-                            <span class="text-[10px] font-bold text-gray-400 capitalize group-hover:text-mint transition">\${data.sender_name}</span>
+                            <span class="text-[10px] font-bold text-gray-400 capitalize group-hover:text-mint transition">${data.sender_name}</span>
                         </a>
                     ` : ''}
 
@@ -427,7 +434,8 @@
                 </div>
             `;
             chatLog.appendChild(div);
-            chatLog.scrollTop = chatLog.scrollHeight;
+            // Smooth scroll to bottom
+            chatLog.scrollTo({ top: chatLog.scrollHeight, behavior: 'smooth' });
         }
 
         // ===== Edit/Delete (real-time via WebSocket) =====

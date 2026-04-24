@@ -1,0 +1,11 @@
+from django.urls import path
+from . import views
+
+app_name = 'rewards'
+
+urlpatterns = [
+    path('shop/', views.shop_list, name='shop'),
+    path('redeem/<int:item_id>/', views.redeem_item, name='redeem'),
+    path('admin-panel/', views.admin_reward_list, name='admin_list'),
+    path('status/<int:redemption_id>/', views.update_redemption_status, name='update_status'),
+]

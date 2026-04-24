@@ -19,6 +19,7 @@ urlpatterns = [
     path('notifications/', include('apps.notifications.urls', namespace='notifications')),
     path('complaints/', include('apps.complaints.urls', namespace='complaints')),
     path('payments/', include('apps.payments.urls', namespace='payments')),
+    path('rewards/', include('apps.rewards.urls', namespace='rewards')),
 ]
 
 if settings.DEBUG:

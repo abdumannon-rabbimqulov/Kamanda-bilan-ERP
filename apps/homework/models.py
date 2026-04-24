@@ -14,3 +14,6 @@ class Homework(models.Model):
     feedback = models.TextField(blank=True)
     checked_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='checked_homeworks')
     status = models.CharField(max_length=20, choices=STATUS, default='submitted')
+    is_bonus_eligible = models.BooleanField(default=True)
+    xp_awarded = models.IntegerField(default=0)
+    coins_awarded = models.IntegerField(default=0)

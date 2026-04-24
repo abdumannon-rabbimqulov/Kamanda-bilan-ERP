@@ -41,6 +41,17 @@
 
     <!-- User Profile right -->
     <div class="hidden md:flex items-center space-x-4">
+      <div class="flex items-center gap-3 px-4 py-2 bg-gray-800/50 rounded-2xl border border-gray-700 shadow-inner">
+        <div class="flex items-center gap-1.5">
+          <i class="fa-solid fa-bolt text-mint text-xs"></i>
+          <span class="text-white text-xs font-black">{{ user.xp|default:0|intcomma }}</span>
+        </div>
+        <div class="w-px h-3 bg-gray-700"></div>
+        <div class="flex items-center gap-1.5">
+          <i class="fa-solid fa-coins text-yellow-500 text-xs"></i>
+          <span class="text-white text-xs font-black">{{ user.coins|default:0|intcomma }}</span>
+        </div>
+      </div>
       {% include 'dashboard/includes/notification_dropdown.html' %}
       <a href="{% url 'auth:profile' %}" class="flex items-center space-x-2 bg-[#252830] pr-4 rounded-full border border-gray-700 cursor-pointer hover:border-[#00e699] transition">
         {% if user.avatar %}
@@ -83,6 +94,10 @@
           <i class="fa-regular fa-comment-dots"></i>
           <span>Messenger</span>
         </a>
+        <a href="{% url 'rewards:shop' %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+          <i class="fa-solid fa-coins"></i>
+          <span>Coin Market</span>
+        </a>
         
         <a href="{% url 'auth:logout' %}" class="flex items-center space-x-3 text-red-400 hover:text-red-300 hover:bg-[#252830] px-4 py-3 rounded-lg font-medium mt-12 transition">
           <i class="fa-solid fa-arrow-right-from-bracket"></i>
@@ -115,6 +130,53 @@
          </a>
       </div>
       {% endif %}
+
+      <!-- Gamification Stats Header -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="card-bg p-5 rounded-3xl border border-gray-700 shadow-xl flex items-center gap-4 relative overflow-hidden group">
+          <div class="absolute -right-6 -top-6 w-16 h-16 bg-mint opacity-10 rounded-full blur-2xl group-hover:scale-150 transition duration-700"></div>
+          <div class="w-14 h-14 rounded-2xl bg-mint/20 flex items-center justify-center text-mint text-2xl shadow-inner ring-1 ring-mint/30">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div>
+            <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Mening XP</p>
+            <h4 class="text-white text-2xl font-black">{{ user.xp|default:0|intcomma }}</h4>
+          </div>
+        </div>
+
+        <div class="card-bg p-5 rounded-3xl border border-gray-700 shadow-xl flex items-center gap-4 relative overflow-hidden group">
+          <div class="absolute -right-6 -top-6 w-16 h-16 bg-yellow-500 opacity-10 rounded-full blur-2xl group-hover:scale-150 transition duration-700"></div>
+          <div class="w-14 h-14 rounded-2xl bg-yellow-500/20 flex items-center justify-center text-yellow-500 text-2xl shadow-inner ring-1 ring-yellow-500/30">
+            <i class="fa-solid fa-coins"></i>
+          </div>
+          <div>
+            <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Coinlar</p>
+            <h4 class="text-white text-2xl font-black">{{ user.coins|default:0|intcomma }}</h4>
+          </div>
+        </div>
+
+        <div class="card-bg p-5 rounded-3xl border border-gray-700 shadow-xl flex items-center gap-4 relative overflow-hidden group">
+          <div class="absolute -right-6 -top-6 w-16 h-16 bg-blue-500 opacity-10 rounded-full blur-2xl group-hover:scale-150 transition duration-700"></div>
+          <div class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400 text-2xl shadow-inner ring-1 ring-blue-500/30">
+            <i class="fa-solid fa-ranking-star"></i>
+          </div>
+          <div>
+            <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Reyting</p>
+            <h4 class="text-white text-2xl font-black">#{{ forloop.counter|default:"--" }}</h4>
+          </div>
+        </div>
+
+        <div class="card-bg p-5 rounded-3xl border border-gray-700 shadow-xl flex items-center gap-4 relative overflow-hidden group">
+          <div class="absolute -right-6 -top-6 w-16 h-16 bg-purple-500 opacity-10 rounded-full blur-2xl group-hover:scale-150 transition duration-700"></div>
+          <div class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400 text-2xl shadow-inner ring-1 ring-purple-500/30">
+            <i class="fa-solid fa-fire"></i>
+          </div>
+          <div>
+            <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Streak</p>
+            <h4 class="text-white text-2xl font-black">7 kun</h4>
+          </div>
+        </div>
+      </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
         

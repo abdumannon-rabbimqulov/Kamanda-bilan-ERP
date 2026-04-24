@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mb-20 animate-fade-in">
+    
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tight">Coin Market</h1>
+            <p class="text-gray-400 mt-2">To'plagan coinlaringizni ajoyib sovg'alarga almashtiring!</p>
+        </div>
+        <div class="flex items-center gap-4 bg-yellow-500/10 border border-yellow-500/20 px-6 py-4 rounded-3xl shadow-xl">
+            <div class="w-12 h-12 rounded-2xl bg-yellow-500 flex items-center justify-center text-white text-2xl shadow-lg shadow-yellow-500/20">
+                <i class="fa-solid fa-coins"></i>
+            </div>
+            <div>
+                <p class="text-yellow-500 text-[10px] font-black uppercase tracking-widest">Mening balansim</p>
+                <h4 class="text-white text-2xl font-black">{{ user.coins|intcomma }} <span class="text-xs font-normal text-gray-500">coins</span></h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Grid -->
+    <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-gift text-mint"></i> Mavjud sovg'alar
+    </h2>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-20">
+        {% for item in items %}
+        <div class="card-bg rounded-3xl border border-gray-700 overflow-hidden shadow-2xl hover:border-mint transition-all group flex flex-col h-full">
+            <div class="relative h-56 overflow-hidden bg-[#1a1c23]">
+                {% if item.image %}
+                    <img src="{{ item.image.url }}" class="w-full h-full object-contain p-4 group-hover:scale-110 transition duration-500">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-gray-700">
+                        <i class="fa-solid fa-image text-5xl"></i>
+                    </div>
+                {% endif %}
+                <div class="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                    <span class="text-yellow-400 text-xs font-black">{{ item.coin_price|intcomma }} <i class="fa-solid fa-coins ml-0.5"></i></span>
+                </div>
+                {% if item.stock_quantity < 5 %}
+                <div class="absolute bottom-4 left-4 bg-red-500/80 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                    Faqat {{ item.stock_quantity }} ta qoldi!
+                </div>
+                {% endif %}
+            </div>
+            <div class="p-6 flex flex-col flex-1">
+                <h3 class="text-white font-bold text-lg mb-2">{{ item.name }}</h3>
+                <p class="text-gray-400 text-sm mb-6 line-clamp-2">{{ item.description }}</p>
+                
+                <div class="mt-auto">
+                    {% if user.coins >= item.coin_price %}
+                    <button onclick="confirmRedeem('{{ item.id }}', '{{ item.name }}', {{ item.coin_price }})" 
+                            class="w-full bg-mint text-green-900 font-black py-3 rounded-2xl hover:bg-[#00cc88] transition shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-basket-shopping"></i> ALMASHTIRISH
+                    </button>
+                    {% else %}
+                    <button disabled class="w-full bg-gray-700 text-gray-500 font-bold py-3 rounded-2xl cursor-not-allowed opacity-50 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock"></i> COINLAR YETARLI EMAS
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 text-center bg-[#252830] rounded-3xl border border-gray-700">
+            <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-700">
+                <i class="fa-solid fa-store-slash text-gray-600 text-3xl"></i>
+            </div>
+            <h3 class="text-white font-bold">Hozircha sovg'alar yo'q</h3>
+            <p class="text-gray-500 text-sm mt-1">Yaqin orada yangi buyumlar qo'shiladi!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Redemptions History -->
+    {% if user_redemptions %}
+    <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Mening buyurtmalarim
+    </h2>
+    <div class="bg-[#252830] rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#1a1c23]/50 text-gray-400 text-[10px] font-black uppercase tracking-widest border-b border-gray-700">
+                        <th class="py-5 px-6">Buyum</th>
+                        <th class="py-5 px-6">Narxi</th>
+                        <th class="py-5 px-6">Sana</th>
+                        <th class="py-5 px-6">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/50">
+                    {% for r in user_redemptions %}
+                    <tr class="hover:bg-[#1a1c23]/30 transition">
+                        <td class="py-5 px-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center p-1 border border-gray-700">
+                                    {% if r.item.image %}
+                                        <img src="{{ r.item.image.url }}" class="w-full h-full object-contain">
+                                    {% else %}
+                                        <i class="fa-solid fa-gift text-gray-600"></i>
+                                    {% endif %}
+                                </div>
+                                <span class="text-white font-bold">{{ r.item.name }}</span>
+                            </div>
+                        </td>
+                        <td class="py-5 px-6 text-yellow-500 font-bold text-sm">{{ r.coins_spent|intcomma }} <i class="fa-solid fa-coins text-[10px]"></i></td>
+                        <td class="py-5 px-6 text-gray-400 text-xs">{{ r.created_at|date:"d.m.Y H:i" }}</td>
+                        <td class="py-5 px-6">
+                            {% if r.status == 'pending' %}
+                                <span class="bg-yellow-500/10 text-yellow-500 text-[10px] font-black px-3 py-1 rounded-full border border-yellow-500/20 uppercase tracking-widest">Kutilmoqda</span>
+                            {% elif r.status == 'delivered' %}
+                                <span class="bg-mint/10 text-mint text-[10px] font-black px-3 py-1 rounded-full border border-mint/20 uppercase tracking-widest">Topshirildi</span>
+                            {% else %}
+                                <span class="bg-red-500/10 text-red-500 text-[10px] font-black px-3 py-1 rounded-full border border-red-500/20 uppercase tracking-widest">Bekor qilindi</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Confirmation Modal -->
+<div id="redeemModal" class="fixed inset-0 bg-black/80 z-[1000] hidden items-center justify-center p-4 backdrop-blur-md">
+    <div class="bg-[#252830] w-full max-w-md rounded-3xl border border-gray-700 shadow-2xl overflow-hidden animate-slide-up">
+        <div class="p-8 text-center">
+            <div class="w-20 h-20 bg-mint/20 rounded-full flex items-center justify-center mx-auto mb-6 text-mint text-3xl shadow-inner">
+                <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+            <h3 class="text-2xl font-black text-white mb-2" id="redeemItemName">Xaridni tasdiqlaysizmi?</h3>
+            <p class="text-gray-400 text-sm mb-8" id="redeemItemCost"></p>
+            
+            <div class="flex gap-4">
+                <button onclick="closeRedeemModal()" class="flex-1 bg-gray-800 text-gray-400 font-bold py-4 rounded-2xl hover:bg-gray-700 transition">BEKOR QILISH</button>
+                <form id="redeemForm" method="POST" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full bg-mint text-green-900 font-extrabold py-4 rounded-2xl hover:bg-[#00cc88] transition shadow-lg">TASDIQLASH</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmRedeem(id, name, price) {
+        document.getElementById('redeemItemName').innerText = name;
+        document.getElementById('redeemItemCost').innerText = `Ushbu buyum uchun balansingizdan ${price.toLocaleString()} coin yechib olinadi.`;
+        document.getElementById('redeemForm').action = `/rewards/redeem/${id}/`;
+        document.getElementById('redeemModal').style.display = 'flex';
+    }
+    function closeRedeemModal() {
+        document.getElementById('redeemModal').style.display = 'none';
+    }
+</script>
+{% endblock %}

@@ -54,7 +54,17 @@ def enroll_course(request, course_id):
 @role_required('teacher', 'admin', 'assistant', 'student')
 def lesson_list(request, group_id):
     group = get_object_or_404(Group, id=group_id)
-    lessons = Lesson.objects.filter(group=group).order_by('order')
+    enrollment = Enrollment.objects.filter(student=request.user, group=group).first()
+    
+    if request.user.role == 'student':
+        if enrollment and enrollment.status == 'completed':
+            # Bitiruvchilar hamma darslarni ko'ra oladi
+            lessons = Lesson.objects.filter(group=group).order_by('order')
+        else:
+            # Oddiy o'quvchilar faqat boshlangan darslarni ko'radi
+            lessons = Lesson.objects.filter(group=group, started_at__isnull=False).order_by('order')
+    else:
+        lessons = Lesson.objects.filter(group=group).order_by('order')
     
     if request.user.role == 'student':
         from apps.homework.models import Homework
@@ -95,13 +105,32 @@ def lesson_detail(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     user_homework = None
     enrollment = None
+    deadline_passed = False
+    edit_disabled = False
+    
     if request.user.is_authenticated and request.user.role == 'student':
         user_homework = Homework.objects.filter(student=request.user, lesson=lesson).first()
         enrollment = Enrollment.objects.filter(student=request.user, group=lesson.group).first()
+        
+        if lesson.started_at:
+            days_passed = (timezone.now() - lesson.started_at).days
+            if days_passed > 10:
+                deadline_passed = True
+            if days_passed > 2:
+                edit_disabled = True
+        
+        # Agar vazifa topshirilgan bo'lsa, topshirilgan vaqtdan boshlab 2 kun o'tganini tekshiramiz
+        if user_homework:
+            hw_days = (timezone.now() - user_homework.submitted_at).days
+            if hw_days > 2:
+                edit_disabled = True
+
     return render(request, 'courses/lesson_detail.html', {
         'lesson': lesson, 
         'user_homework': user_homework,
-        'enrollment': enrollment
+        'enrollment': enrollment,
+        'deadline_passed': deadline_passed,
+        'edit_disabled': edit_disabled
     })
 
 @role_required('teacher', 'admin', 'assistant')

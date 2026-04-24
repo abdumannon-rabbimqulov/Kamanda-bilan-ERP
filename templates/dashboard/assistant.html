@@ -43,7 +43,7 @@
         <p class="text-gray-500 text-[10px] uppercase font-black tracking-widest mt-4 opacity-70">Yordamchi Dashbord</p>
       </div>
 
-      <nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+      <nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto border-t border-gray-800">
         <a href="{% url 'dashboard:assistant' %}" class="nav-link active flex items-center space-x-3 px-4 py-3 rounded-xl transition font-bold text-sm">
           <i class="fa-solid fa-house-chimney text-lg opacity-80"></i>
           <span>Asosiy Panel</span>
@@ -51,6 +51,14 @@
         <a href="#homework-section" class="nav-link flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition font-bold text-sm">
           <i class="fa-solid fa-list-check text-lg opacity-80"></i>
           <span>Vazifa</span>
+        </a>
+        <a href="#assisted-groups-section" class="nav-link flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition font-bold text-sm">
+          <i class="fa-solid fa-layer-group text-lg opacity-80"></i>
+          <span>Guruhlarim</span>
+        </a>
+        <a href="#exams-section" class="nav-link flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition font-bold text-sm">
+          <i class="fa-solid fa-award text-lg opacity-80"></i>
+          <span>Imtihonlar</span>
         </a>
         <a href="{% url 'chat:list' %}" class="nav-link flex items-center justify-between px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition font-bold text-sm">
           <div class="flex items-center space-x-3">
@@ -68,27 +76,11 @@
           <i class="fa-solid fa-wallet text-lg opacity-80"></i>
           <span>Maoshlarim</span>
         </a>
-        <a href="{% url 'auth:logout' %}" class="flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition font-bold text-sm mt-auto">
+        <a href="{% url 'auth:logout' %}" class="flex items-center space-x-3 px-4 py-3 text-red-500 hover:bg-red-500/10 rounded-xl transition font-bold text-sm mt-auto">
           <i class="fa-solid fa-power-off text-lg"></i>
           <span>Chiqish</span>
         </a>
       </nav>
-
-      <div class="p-6 border-t border-gray-800">
-        <a href="{% url 'auth:profile' %}" class="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/5 hover:border-[#00e699] transition">
-          {% if user.avatar %}
-            <img src="{{ user.avatar.url }}" class="w-10 h-10 rounded-full object-cover" alt="Avatar">
-          {% else %}
-            <div class="w-10 h-10 rounded-full bg-mint flex items-center justify-center font-black text-black">
-              {{ user.first_name|first|default:user.username|first|upper }}
-            </div>
-          {% endif %}
-          <div class="overflow-hidden">
-            <p class="text-white font-bold text-xs truncate">{{ user.get_full_name|default:user.username }}</p>
-            <p class="text-gray-500 text-[10px] truncate uppercase tracking-tighter">Yordamchi o'qituvchi</p>
-          </div>
-        </a>
-      </div>
     </aside>
 
     <!-- ══ MAIN CONTENT ══ -->
@@ -100,7 +92,23 @@
           <h2 class="text-3xl font-black text-white tracking-tight mb-2">Salom, <span class="text-mint">{{ user.first_name }}!</span> 👋</h2>
           <p class="text-gray-500 font-medium">Bugun sizni {{ pending_hw_count }} ta tekshirilmagan vazifa kutmoqda.</p>
         </div>
-        {% include 'dashboard/includes/notification_dropdown.html' %}
+        <div class="flex items-center gap-4">
+          {% include 'dashboard/includes/notification_dropdown.html' %}
+          
+          <a href="{% url 'auth:profile' %}" class="flex items-center gap-3 bg-white/5 p-2 pr-4 rounded-2xl border border-white/5 hover:border-[#00e699] transition">
+            {% if user.avatar %}
+              <img src="{{ user.avatar.url }}" class="w-10 h-10 rounded-full object-cover" alt="Avatar">
+            {% else %}
+              <div class="w-10 h-10 rounded-full bg-mint flex items-center justify-center font-black text-black">
+                {{ user.first_name|first|default:user.username|first|upper }}
+              </div>
+            {% endif %}
+            <div class="hidden sm:block">
+              <p class="text-white font-bold text-xs">{{ user.get_full_name|default:user.username }}</p>
+              <p class="text-gray-500 text-[9px] uppercase tracking-tighter">Yordamchi o'qituvchi</p>
+            </div>
+          </a>
+        </div>
       </div>
 
       <!-- Stats Grid -->
@@ -172,7 +180,7 @@
           </section>
 
           <!-- Assisted Groups -->
-          <section>
+          <section id="assisted-groups-section">
             <div class="flex items-center justify-between mb-6">
               <h3 class="text-xl font-black text-white tracking-tight flex items-center gap-3">
                 <i class="fa-solid fa-layer-group text-blue-500"></i>
@@ -227,7 +235,7 @@
         <div class="space-y-10">
           
           <!-- Exams Section -->
-          <section>
+          <section id="exams-section">
             <h3 class="text-xl font-black text-white tracking-tight flex items-center gap-3 mb-6">
               <i class="fa-solid fa-award text-purple-500"></i>
               Imtihonlar

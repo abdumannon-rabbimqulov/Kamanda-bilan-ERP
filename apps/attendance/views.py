@@ -75,10 +75,20 @@ def mark_attendance(request, group_id):
         for enrollment in enrollments:
             status = request.POST.get(f'status_{enrollment.student.id}')
             if status:
-                Attendance.objects.update_or_create(
+                _, created = Attendance.objects.update_or_create(
                     student=enrollment.student, group=group, date=date_str,
                     defaults={'status': status, 'marked_by': request.user}
                 )
+                
+                # Bonus: Award XP/Coins for presence
+                if status == 'present':
+                    student = enrollment.student
+                    # Only award once per day/group
+                    if created:
+                        student.xp += 5
+                        student.coins += 2
+                        student.save()
+                        
         messages.success(request, f"{date_str} sanasidagi davomat saqlandi")
         return redirect('attendance:list', group_id=group.id)
         

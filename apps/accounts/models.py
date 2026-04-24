@@ -9,6 +9,8 @@ class User(AbstractUser):
     phone = models.CharField(max_length=20, blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True)
     bio = models.TextField(blank=True)
+    xp = models.IntegerField(default=0)
+    coins = models.IntegerField(default=0)
 
 class OTPCode(models.Model):
     PURPOSES = [('register','Register'),('reset','Password Reset')]
