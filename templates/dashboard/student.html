@@ -31,7 +31,7 @@
       <a href="{% url 'dashboard:student' %}" class="text-mint border-b-2 border-mint pb-4 -mb-[18px]">Dashboard</a>
       <a href="{% url 'courses:list' %}" class="text-gray-400 hover:text-gray-200">Kurslarim</a>
       <a href="{% if active_enrollment %}{% url 'courses:lesson_list' active_enrollment.group.id %}{% else %}#{% endif %}" class="text-gray-400 hover:text-gray-200">Darslar</a>
-      <a href="{% if active_enrollment %}{% url 'homework:list' active_enrollment.group.id %}{% else %}#{% endif %}" class="text-gray-400 hover:text-gray-200">Uy vazifalari</a>
+      <a href="{% url 'homework:group_selection' %}" class="text-gray-400 hover:text-gray-200">Uy vazifalari</a>
       <a href="{% if active_enrollment %}{% url 'exams:list' active_enrollment.group.id %}{% else %}#{% endif %}" class="text-gray-400 hover:text-gray-200">Natijalar</a>
       <a href="#payment-section" class="text-gray-400 hover:text-gray-200">To'lovlar</a>
       {% if certificates %}
@@ -80,7 +80,7 @@
           <span>Kurslar</span>
         </a>
         {% if active_enrollment %}
-        <a href="{% url 'homework:list' active_enrollment.group.id %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+        <a href="{% url 'homework:group_selection' %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
           <i class="fa-solid fa-check-to-slot"></i>
           <span>Vazifalar</span>
         </a>
@@ -97,6 +97,10 @@
         <a href="{% url 'rewards:shop' %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
           <i class="fa-solid fa-coins"></i>
           <span>Coin Market</span>
+        </a>
+        <a href="{% url 'rewards:leaderboard' %}" class="flex items-center space-x-3 text-gray-400 hover:text-white hover:bg-[#252830] px-4 py-3 rounded-lg font-medium transition cursor-pointer">
+          <i class="fa-solid fa-trophy"></i>
+          <span>Reyting</span>
         </a>
         
         <a href="{% url 'auth:logout' %}" class="flex items-center space-x-3 text-red-400 hover:text-red-300 hover:bg-[#252830] px-4 py-3 rounded-lg font-medium mt-12 transition">

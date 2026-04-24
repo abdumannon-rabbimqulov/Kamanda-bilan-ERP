@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mb-20 animate-fade-in">
+    
+    <div class="mb-10">
+        <h1 class="text-3xl font-black text-white tracking-tight">Uy vazifalari</h1>
+        <p class="text-gray-400 mt-2">Vazifalarni ko'rish uchun guruhni tanlang</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% if is_student %}
+            {% for enr in enrollments %}
+            <a href="{% url 'homework:list' enr.group.id %}" class="card-bg p-8 rounded-3xl border border-gray-700 hover:border-mint transition-all group relative overflow-hidden shadow-2xl">
+                <div class="absolute -right-8 -top-8 w-24 h-24 bg-mint/5 rounded-full blur-2xl group-hover:scale-150 transition duration-700"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-12 h-12 rounded-2xl bg-mint/10 flex items-center justify-center text-mint text-xl border border-mint/20">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        {% if enr.status == 'completed' %}
+                            <span class="bg-gray-800 text-gray-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-gray-700">Bitirgan</span>
+                        {% else %}
+                            <span class="bg-mint/10 text-mint text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-mint/20">Aktiv</span>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="text-xl font-bold text-white mb-2">{{ enr.group.course.title }}</h3>
+                    <p class="text-gray-500 text-sm mb-6">{{ enr.group.name }}</p>
+                    
+                    <div class="flex items-center text-mint text-sm font-bold group-hover:translate-x-2 transition-transform">
+                        Vazifalarni ko'rish <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="col-span-full py-20 text-center bg-[#252830] rounded-3xl border border-gray-700 border-dashed">
+                <i class="fa-solid fa-folder-open text-gray-700 text-5xl mb-4"></i>
+                <h3 class="text-white font-bold">Siz hali hech qanday guruhga qo'shilmagansiz</h3>
+                <p class="text-gray-500 text-sm mt-1">Kurslarga yoziling va o'qishni boshlang!</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            {% for group in groups %}
+            <a href="{% url 'homework:list' group.id %}" class="card-bg p-8 rounded-3xl border border-gray-700 hover:border-mint transition-all group relative overflow-hidden shadow-2xl">
+                <div class="absolute -right-8 -top-8 w-24 h-24 bg-mint/5 rounded-full blur-2xl group-hover:scale-150 transition duration-700"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-12 h-12 rounded-2xl bg-mint/10 flex items-center justify-center text-mint text-xl border border-mint/20">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                        <span class="bg-blue-500/10 text-blue-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-blue-500/20">Ustoz</span>
+                    </div>
+                    
+                    <h3 class="text-xl font-bold text-white mb-2">{{ group.course.title }}</h3>
+                    <p class="text-gray-500 text-sm mb-6">{{ group.name }}</p>
+                    
+                    <div class="flex items-center text-mint text-sm font-bold group-hover:translate-x-2 transition-transform">
+                        Vazifalarni tekshirish <i class="fa-solid fa-magnifying-glass ml-2 text-xs"></i>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="col-span-full py-20 text-center bg-[#252830] rounded-3xl border border-gray-700 border-dashed">
+                <i class="fa-solid fa-folder-open text-gray-700 text-5xl mb-4"></i>
+                <h3 class="text-white font-bold">Sizda hali guruhlar yo'q</h3>
+                <p class="text-gray-500 text-sm mt-1">Admin tomonidan guruh biriktirilishini kuting.</p>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

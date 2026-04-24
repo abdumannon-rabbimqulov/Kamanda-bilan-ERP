@@ -11,6 +11,30 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
     xp = models.IntegerField(default=0)
     coins = models.IntegerField(default=0)
+    level = models.IntegerField(default=0)
+
+    def add_xp(self, amount):
+        self.xp += int(amount)
+        # Har 250 XP da yangi bosqich
+        new_level = self.xp // 250
+        if new_level > 10:
+            new_level = 10
+            
+        if new_level > self.level:
+            # Bosqich ko'tarildi - mukofotlarni beramiz
+            for lv in range(self.level + 1, new_level + 1):
+                # 1-bosqich: 70 coin, keyingilari +30 dan, max 220
+                coin_reward = 70 + (lv - 1) * 30
+                if coin_reward > 220:
+                    coin_reward = 220
+                self.coins += coin_reward
+            self.level = new_level
+        self.save()
+
+    @property
+    def level_progress(self):
+        if self.level >= 10: return 100
+        return ((self.xp % 250) / 250) * 100
 
 class OTPCode(models.Model):
     PURPOSES = [('register','Register'),('reset','Password Reset')]

@@ -36,7 +36,17 @@
                             {% if lesson.homework.status == 'checked' %}
                                 <div class="flex flex-col items-center md:items-end">
                                     <span class="bg-mint/10 text-mint text-[10px] font-black uppercase px-3 py-1 rounded-full border border-mint/20 mb-1">Baholandi</span>
-                                    <span class="text-2xl font-black text-white">{{ lesson.homework.grade }}<span class="text-xs text-gray-500 font-medium ml-1">/100</span></span>
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex items-center gap-1">
+                                            <i class="fa-solid fa-bolt text-mint text-[10px]"></i>
+                                            <span class="text-white text-xs font-bold">+{{ lesson.homework.xp_awarded }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <i class="fa-solid fa-coins text-yellow-500 text-[10px]"></i>
+                                            <span class="text-white text-xs font-bold">+{{ lesson.homework.coins_awarded }}</span>
+                                        </div>
+                                        <span class="text-2xl font-black text-white ml-2">{{ lesson.homework.grade }}<span class="text-xs text-gray-500 font-medium ml-1">/100</span></span>
+                                    </div>
                                 </div>
                             {% else %}
                                 <span class="bg-yellow-500/10 text-yellow-500 text-[10px] font-black uppercase px-3 py-1 rounded-full border border-yellow-500/20">Tekshirilmoqda</span>
@@ -67,77 +77,135 @@
     </div>
 
     {% else %}
-    <!-- Teacher/Assistant View: All Submissions -->
-    <div class="bg-[#252830] rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-[#1a1c23] border-b border-gray-700">
-                    <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Talaba</th>
-                    <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Dars / Vazifa</th>
-                    <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Vaqt</th>
-                    <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Holat</th>
-                    <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Amallar</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-700/30">
-                {% for sub in submissions %}
-                <tr class="hover:bg-white/[0.02] transition">
-                    <td class="px-8 py-5">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#00e699]/20 to-blue-500/20 flex items-center justify-center font-bold text-white text-xs border border-gray-700">
-                                {{ sub.student.first_name|first|upper }}
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-white font-bold text-sm">{{ sub.student.get_full_name|default:sub.student.username }}</span>
-                                <span class="text-[10px] text-gray-500 uppercase tracking-tighter">{{ sub.student.role }}</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-8 py-5 text-sm">
-                        <p class="text-white font-medium">{{ sub.lesson.title }}</p>
-                        <p class="text-gray-500 text-[10px] mt-0.5 uppercase tracking-tighter">Dars #{{ sub.lesson.order }}</p>
-                    </td>
-                    <td class="px-8 py-5 text-center text-gray-500 text-xs">
-                        {{ sub.submitted_at|date:"d.m.y" }}<br>
-                        <span class="text-[10px]">{{ sub.submitted_at|date:"H:i" }}</span>
-                    </td>
-                    <td class="px-8 py-5 text-center">
-                        {% if sub.status == 'checked' %}
-                            <div class="flex flex-col items-center">
-                                <span class="bg-mint/10 text-mint text-[9px] font-black uppercase px-2 py-0.5 rounded border border-mint/20 mb-1">Baholandi</span>
-                                <span class="text-sm font-black text-white">{{ sub.grade }}</span>
-                            </div>
-                        {% else %}
-                            <span class="bg-yellow-500/10 text-yellow-500 text-[9px] font-black uppercase px-2 py-0.5 rounded border border-yellow-500/20">Kutilmoqda</span>
-                        {% endif %}
-                    </td>
-                    <td class="px-8 py-5 text-right">
-                        <div class="flex justify-end items-center gap-4">
-                            {% if sub.file or sub.github_link %}
-                                <div class="flex gap-2">
-                                    {% if sub.file %}<i class="fa-solid fa-file-arrow-down text-gray-600 hover:text-[#00e699] cursor-pointer transition"></i>{% endif %}
-                                    {% if sub.github_link %}<i class="fa-brands fa-github text-gray-600 hover:text-white cursor-pointer transition"></i>{% endif %}
-                                </div>
-                            {% endif %}
-                            <a href="{% url 'homework:grade' sub.id %}" class="bg-[#00e699]/10 text-[#00e699] px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#00e699] hover:text-black transition-all">
-                                {% if sub.status == 'checked' %}Tahrirlash{% else %}Baholash{% endif %}
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="px-8 py-20 text-center">
-                        <div class="w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center mx-auto mb-4 border border-gray-700">
-                             <i class="fa-solid fa-clipboard-list text-gray-600 text-2xl"></i>
-                        </div>
-                        <p class="text-gray-500 font-medium">Hozircha hech qanday vazifa topshirilmagan.</p>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Teacher/Assistant View: Categorized Submissions -->
+    <div class="mb-8 flex gap-4 border-b border-gray-700 pb-px">
+        <button onclick="showTab('pending')" id="tab-pending-btn" class="px-6 py-3 text-sm font-bold border-b-2 border-mint text-mint transition-all">Kutilmoqda ({{ pending.count }})</button>
+        <button onclick="showTab('checked')" id="tab-checked-btn" class="px-6 py-3 text-sm font-bold text-gray-500 hover:text-white transition-all">Baholandi ({{ checked.count }})</button>
+        <button onclick="showTab('missing')" id="tab-missing-btn" class="px-6 py-3 text-sm font-bold text-gray-500 hover:text-white transition-all">Topshirmaganlar ({{ missing.count }})</button>
     </div>
+
+    <!-- PENDING TAB -->
+    <div id="tab-pending" class="homework-tab">
+        <div class="bg-[#252830] rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-[#1a1c23] border-b border-gray-700">
+                    <tr>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Talaba</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Dars</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Vaqt</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/30">
+                    {% for sub in pending %}
+                    <tr class="hover:bg-white/[0.02] transition">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center font-bold text-yellow-500 text-xs border border-yellow-500/20">
+                                    {{ sub.student.first_name|first|upper }}
+                                </div>
+                                <span class="text-white font-bold text-sm">{{ sub.student.get_full_name|default:sub.student.username }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5 text-sm">
+                            <p class="text-white font-medium">{{ sub.lesson.title }}</p>
+                            <p class="text-gray-500 text-[10px] uppercase">Dars #{{ sub.lesson.order }}</p>
+                        </td>
+                        <td class="px-8 py-5 text-center text-gray-500 text-xs">
+                            {{ sub.submitted_at|date:"d.m.y" }}<br>{{ sub.submitted_at|date:"H:i" }}
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <a href="{% url 'homework:grade' sub.id %}" class="bg-mint text-black px-6 py-2 rounded-xl text-xs font-bold hover:shadow-[0_0_15px_rgba(0,230,153,0.4)] transition uppercase">Baholash</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="px-8 py-10 text-center text-gray-500">Kutilayotgan vazifalar yo'q.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- CHECKED TAB -->
+    <div id="tab-checked" class="homework-tab hidden">
+        <div class="bg-[#252830] rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-[#1a1c23] border-b border-gray-700">
+                    <tr>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Talaba</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Dars</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Baho</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/30">
+                    {% for sub in checked %}
+                    <tr class="hover:bg-white/[0.02] transition">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-mint/20 flex items-center justify-center font-bold text-mint text-xs border border-mint/20">
+                                    {{ sub.student.first_name|first|upper }}
+                                </div>
+                                <span class="text-white font-bold text-sm">{{ sub.student.get_full_name|default:sub.student.username }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5 text-sm">
+                            <p class="text-white font-medium">{{ sub.lesson.title }}</p>
+                            <p class="text-gray-500 text-[10px] uppercase">Dars #{{ sub.lesson.order }}</p>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="text-lg font-black text-white">{{ sub.grade }}</span>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Baholab bo'lingan</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="px-8 py-10 text-center text-gray-500">Hali hech bir vazifa baholanmagan.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MISSING TAB -->
+    <div id="tab-missing" class="homework-tab hidden">
+        <div class="bg-[#252830] rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
+            <div class="p-6 bg-[#1a1c23]/50 border-b border-gray-700">
+                <p class="text-gray-400 text-xs font-bold uppercase tracking-widest">Oxirgi dars bo'yicha topshirmaganlar: <span class="text-white">{{ latest_lesson.title|default:"Dars mavjud emas" }}</span></p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                {% for enr in missing %}
+                <div class="badge-bg p-4 rounded-2xl border border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 font-bold text-[10px]">
+                            {{ enr.student.first_name|first|upper }}
+                        </div>
+                        <span class="text-white font-bold text-xs">{{ enr.student.get_full_name|default:enr.student.username }}</span>
+                    </div>
+                    <span class="text-[9px] font-black text-red-500 uppercase tracking-tighter">Topshirmagan</span>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-center py-10 col-span-full">Hamma topshirgan yoki darslar hali boshlanmagan.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.homework-tab').forEach(t => t.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('[id$="-btn"]').forEach(b => {
+                b.classList.remove('border-b-2', 'border-mint', 'text-mint');
+                b.classList.add('text-gray-500');
+            });
+            const activeBtn = document.getElementById('tab-' + tabId + '-btn');
+            activeBtn.classList.add('border-b-2', 'border-mint', 'text-mint');
+            activeBtn.classList.remove('text-gray-500');
+        }
+    </script>
     {% endif %}
 </div>
 {% endblock %}

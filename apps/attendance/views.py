@@ -81,13 +81,14 @@ def mark_attendance(request, group_id):
                 )
                 
                 # Bonus: Award XP/Coins for presence
-                if status == 'present':
+                if created:
                     student = enrollment.student
-                    # Only award once per day/group
-                    if created:
-                        student.xp += 5
-                        student.coins += 2
-                        student.save()
+                    if status == 'present':
+                        student.coins += 25
+                        student.add_xp(5)
+                    elif status == 'late':
+                        student.coins += 15
+                        student.add_xp(3)
                         
         messages.success(request, f"{date_str} sanasidagi davomat saqlandi")
         return redirect('attendance:list', group_id=group.id)

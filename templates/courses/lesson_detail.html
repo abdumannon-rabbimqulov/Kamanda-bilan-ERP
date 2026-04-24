@@ -127,7 +127,19 @@
             {% if user_homework %}
               <div class="flex items-center gap-2">
                 {% if user_homework.status == 'checked' %}
-                  <span class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-500/20 uppercase tracking-widest">Baholangan: {{ user_homework.grade }}</span>
+                  <div class="flex items-center gap-4">
+                    <div class="flex flex-col items-end">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="flex items-center gap-1 bg-mint/10 text-mint text-[9px] font-bold px-2 py-0.5 rounded border border-mint/20">
+                          <i class="fa-solid fa-bolt"></i> +{{ user_homework.xp_awarded }} XP
+                        </span>
+                        <span class="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 text-[9px] font-bold px-2 py-0.5 rounded border border-yellow-500/20">
+                          <i class="fa-solid fa-coins"></i> +{{ user_homework.coins_awarded }} Coin
+                        </span>
+                      </div>
+                      <span class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-500/20 uppercase tracking-widest">Baholangan: {{ user_homework.grade }}</span>
+                    </div>
+                  </div>
                 {% else %}
                   <span class="bg-yellow-500/10 text-yellow-500 text-[10px] font-bold px-3 py-1 rounded-full border border-yellow-500/20 uppercase tracking-widest">Kutilmoqda</span>
                 {% endif %}

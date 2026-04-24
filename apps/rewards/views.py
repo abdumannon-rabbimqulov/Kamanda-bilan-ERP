@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from apps.accounts.decorators import role_required
 from .models import RewardItem, Redemption
+from apps.accounts.models import User
+from apps.courses.models import Enrollment
 
 @login_required
 @role_required('student')
@@ -12,6 +14,28 @@ def shop_list(request):
     return render(request, 'rewards/shop.html', {
         'items': items,
         'user_redemptions': user_redemptions
+    })
+
+@login_required
+@role_required('student')
+def leaderboard(request):
+    # Umumiy reyting
+    global_top = User.objects.filter(role='student').order_by('-xp')[:50]
+    
+    # Guruhim bo'yicha reyting
+    my_group_top = []
+    enrollment = Enrollment.objects.filter(student=request.user).first()
+    if enrollment:
+        group = enrollment.group
+        my_group_top = User.objects.filter(
+            enrollment__group=group, 
+            role='student'
+        ).order_by('-xp').distinct()
+
+    return render(request, 'rewards/leaderboard.html', {
+        'global_top': global_top,
+        'my_group_top': my_group_top,
+        'current_group': enrollment.group if enrollment else None
     })
 
 @login_required
@@ -70,6 +94,31 @@ def admin_reward_list(request):
         'items': items,
         'redemptions': redemptions
     })
+
+@role_required('admin')
+def edit_reward(request, pk):
+    item = get_object_or_404(RewardItem, pk=pk)
+    if request.method == 'POST':
+        item.name = request.POST.get('name')
+        item.coin_price = request.POST.get('price')
+        item.stock_quantity = request.POST.get('stock')
+        item.description = request.POST.get('desc', '')
+        image = request.FILES.get('image')
+        if image:
+            item.image = image
+        item.is_active = request.POST.get('is_active') == 'on'
+        item.save()
+        messages.success(request, f"{item.name} muvaffaqiyatli yangilandi.")
+        return redirect('rewards:admin_list')
+    return redirect('rewards:admin_list')
+
+@role_required('admin')
+def delete_reward(request, pk):
+    item = get_object_or_404(RewardItem, pk=pk)
+    name = item.name
+    item.delete()
+    messages.success(request, f"{name} o'chirildi.")
+    return redirect('rewards:admin_list')
 
 @role_required('admin')
 def update_redemption_status(request, redemption_id):
